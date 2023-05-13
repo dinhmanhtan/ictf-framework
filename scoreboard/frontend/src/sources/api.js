@@ -1,6 +1,6 @@
 import AbstractApi from './abstract_api';
 
-const BASE_URL    = '/api';     // http://api.address.com/api
+const BASE_URL    = 'http://localhost:8080/api';     // http://api.address.com/api
 
 class Api extends AbstractApi {
   constructor() {

@@ -5,8 +5,11 @@ RUN pip install --upgrade pip
 
 COPY ./database /opt/ictf/database
 COPY ./scoring_ictf /opt/ictf/scoring_ictf
+RUN mkdir -p /opt/ictf/settings
+COPY ./secrets /opt/ictf/secrets
 
 WORKDIR /opt/ictf/database
+RUN cp ./settings.py /opt/ictf/settings/database-api.py
 
 RUN chmod +x ./start.sh && ansible-playbook ./provisioning/hephaestus_provisioning/ansible-provisioning.yml
 

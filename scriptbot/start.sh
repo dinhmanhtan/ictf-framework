@@ -10,6 +10,6 @@ cat ./teamhosts >> /etc/hosts
 
 service prometheus-node-exporter start
 
-/usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/syslog.conf  &
+#/usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/syslog.conf  &
 
 python3 scriptbot.py

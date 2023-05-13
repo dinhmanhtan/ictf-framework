@@ -1,6 +1,6 @@
 #!/bin/bash
 
-/usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/syslog.conf  &
+#/usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/syslog.conf  &
 
 service prometheus-node-exporter start
 service nginx start

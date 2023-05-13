@@ -13,15 +13,15 @@
         url: https://swupdate.openvpn.net/repos/repo-public.gpg
       when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
 
-    - name: add openvpn repo
-      apt_repository:
-        repo: deb http://build.openvpn.net/debian/openvpn/release/2.4 xenial main
-      when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
+    #- name: add openvpn repo
+    #  apt_repository:
+    #    repo: deb http://build.openvpn.net/debian/openvpn/release/2.4 xenial main
+    #  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
 
-    - name: install openvpn
-      apt:
-        name:  openvpn
-        state: latest
+    #- name: install openvpn
+    #  apt:
+    #    name:  openvpn
+    #    state: latest
 
     - name: create openvpn log directory
       file:

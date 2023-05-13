@@ -1,5 +1,5 @@
 __author__ = 'machiry'
-import urllib
+import urllib.request
 import json
 import logging
 import logstash
@@ -91,8 +91,10 @@ class DBApi:
         target_url = self.__build_url(DBApi.PING_DBAPI)
         try:
             ping_response = urllib.request.urlopen(target_url[0]).read()
+            print(ping_response)
             return ping_response == b'lareneg'
         except IOError:
+            print(str(IOError))
             return False
 
     def get_tick_config(self):

@@ -17,7 +17,7 @@ sys.path.append(os.path.abspath(join(os.path.dirname(__file__), '..')))
 GAME_ID = "0"
 
 MAX_LOG_SIZE = "200" #MB
-BASE_CAPTURE_DIR = "/opt/ictf/router/data"
+BASE_CAPTURE_DIR = "/tmp/ictf/router/"
 SERVICES_CAPTURE_DIR = BASE_CAPTURE_DIR + "/services/"
 SERVICES_CAPTURE_FILE = SERVICES_CAPTURE_DIR + GAME_ID + "_serviceports"
 

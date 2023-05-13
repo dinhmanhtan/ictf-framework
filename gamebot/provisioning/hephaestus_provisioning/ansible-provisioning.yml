@@ -19,8 +19,8 @@
       regexp="(THESECRETPASSPHRASEGOESHERE)"
       replace="{{ ICTF_API_SECRET }}"
 
-  - name: logstash - config
-    copy:
-        src=./files/logstash.conf
-        dest=/etc/logstash/conf.d/syslog.conf
-        owner=root group=root mode="u=rw,g=r,o=r"
+#  - name: logstash - config
+#    copy:
+#        src=./files/logstash.conf
+#        dest=/etc/logstash/conf.d/syslog.conf
+#        owner=root group=root mode="u=rw,g=r,o=r"

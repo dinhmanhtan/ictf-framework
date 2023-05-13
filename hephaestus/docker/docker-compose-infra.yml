@@ -52,9 +52,9 @@ services:
             dockerfile: ./hephaestus/docker/1_router/Dockerfile
             context: ../../
 
-    ictf_logger:
-        image: ictf_logger
-        hostname: logger
-        build:
-            dockerfile: ./hephaestus/docker/1_logger/Dockerfile
-            context: ../../
+    #ictf_logger:
+    #    image: ictf_logger
+    #    hostname: logger
+    #    build:
+    #        dockerfile: ./hephaestus/docker/1_logger/Dockerfile
+    #        context: ../../

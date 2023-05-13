@@ -11,7 +11,7 @@ __author__ = "Nilo Redini"
 __email__ = "nredini@cs.ucsb.edu"
 
 import logging
-import logstash
+#import logstash
 import time
 import redis
 import requests
@@ -54,13 +54,13 @@ def should_get_data(game_db):
     tick_key = config['tick_endpoint']['key']
 
     try:
-        data = game_db.get(db_endpoint + tick_endpoint, params=db_request_params)
+        data = game_db.get(db_endpoint + tick_endpoint + '/', params=db_request_params)
     except ConnectionError as ex:
         log.info(f"No data to get, connection error: {db_endpoint=} {tick_endpoint=} with {db_request_params=}: {ex}")
         return False
 
     if data.status_code != 200:
-        log.info(f"No data to get, tick endpoint returned non-200 code: {data.status_code} => {resp.content}")
+        log.info(f"No data to get, tick endpoint returned non-200 code: {data.status_code} => {data.content}")
         return False
     
     data = data.json()
@@ -212,14 +212,14 @@ db_request_params = None
 
 MAIN_LOG_LEVEL = logging.DEBUG
 LOG_FMT = '%(levelname)s - %(asctime)s (%(name)s): %(msg)s'
-LOGSTASH_PORT = 1717
-LOGSTASH_IP = "localhost"
+#LOGSTASH_PORT = 1717
+#LOGSTASH_IP = "localhost"
 
 log = logging.getLogger('scoreboard_poller')
 log.setLevel(MAIN_LOG_LEVEL)
 log.addHandler(logging.StreamHandler(sys.stderr))
 log.addHandler(logging.FileHandler('poller.logs'))
-log.addHandler(logstash.TCPLogstashHandler(LOGSTASH_IP, LOGSTASH_PORT, version=1))
+#log.addHandler(logstash.TCPLogstashHandler(LOGSTASH_IP, LOGSTASH_PORT, version=1))
 
 
 if __name__ == "__main__":
@@ -231,6 +231,8 @@ if __name__ == "__main__":
     with open(sys.argv[1]) as data_file:
         config = json.load(data_file)
 
-    db_endpoint = "http://" + config['db_endpoint']# + ":" + str(config['db_port'])
+    db_endpoint = "http://" + config['db_endpoint'] + ":" + str(config['db_port'])
     db_request_params = {"secret": config['secret']}
     run_forever()
+
+

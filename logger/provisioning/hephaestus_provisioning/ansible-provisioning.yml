@@ -6,7 +6,7 @@
     - name: install grafana key
       apt_key:
         url: https://packages.grafana.com/gpg.key
-        id:  0D224E82057BCEE1321424B1CA6D481DBD044C76
+        #id:  0D224E82057BCEE1321424B1CA6D481DBD044C76
 
     - name: install grafana repo
       apt_repository:

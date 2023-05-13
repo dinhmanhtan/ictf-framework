@@ -97,7 +97,7 @@ def _send_msg(dsts, subject, body):
     to_addrs =  [Email(dst) for dst in dsts]
     for t in to_addrs:
         m = Mail(from_email=Email(config['EMAIL_SENDER']), to_email=t, subject=subject, content=msg)
-        print m.get()
+        print(m.get())
         sg.client.mail.send.post(request_body=m.get())
 
 def send_password_msg(dsts, email, password):

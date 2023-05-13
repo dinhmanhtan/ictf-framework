@@ -4,23 +4,26 @@
 
   vars:
 
-    - ICTF_TI_SERVER_URL: "https://api.seba.net"
+    #- ICTF_TI_SERVER_URL: "https://api.seba.net"
     - ICTF_DB_API_SECRET: "{{ lookup('file', '/opt/ictf/secrets/database-api/secret') }}"
-    - ICTF_TI_SECRET_KEY: "{{ lookup('password','/opt/ictf/secrets/ti_secret length=25') }}"
+    #- ICTF_TI_SECRET_KEY: "{{ lookup('password','/opt/ictf/secrets/ti_secret length=25') }}"
+    - ICTF_TI_SECRET_KEY: ""
+    - ICTF_TI_SERVER_URL: ""
 
     - SENDGRID_API_KEY: ""
     - ICTF_EMAIL_SENDER: ""
-    - ICTF_TI_SERVER_DOMAIN: "api.ictf2017.net"
+    #- ICTF_TI_SERVER_DOMAIN: "api.ictf2017.net"
+    - ICTF_TI_SERVER_DOMAIN: ""
 
     # to obtain a SSL cert with letsencrypt see https://certbot.eff.org/#ubuntutrusty-nginx
-    - SSL_CERTIFICATE_PATH: "/etc/letsencrypt/live/api.ictf2017.net/fullchain.pem"
-    - SSL_CERTIFICATE_KEY_PATH: "/etc/letsencrypt/live/api.ictf2017.net/privkey.pem"
+    #- SSL_CERTIFICATE_PATH: "/etc/letsencrypt/live/api.ictf2017.net/fullchain.pem"
+    #- SSL_CERTIFICATE_KEY_PATH: "/etc/letsencrypt/live/api.ictf2017.net/privkey.pem"
     - ENABLE_SSL: "0"
 
     # Team interface config
-    - REGISTRATION_OPEN: "False"
-    - GAME_STARTED: "False"
-    - SUBMISSION_OPEN: "False"
+    - REGISTRATION_OPEN: "True"
+    - GAME_STARTED: "True"
+    - SUBMISSION_OPEN: "True"
     
   tasks:
     # - include_role:
@@ -72,7 +75,7 @@
       lineinfile:
         dest=/etc/nginx/nginx.conf
         regexp="(worker_processes).*$"
-        line="worker_processes {{ 4 * ansible_processor_cores }};"
+        line="worker_processes {{ 1 * ansible_processor_cores }};"
 
     - name: nginx - allow more open files
       lineinfile:

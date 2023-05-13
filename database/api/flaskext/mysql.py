@@ -59,6 +59,7 @@ class MySQL(object):
             kwargs['db'] = self.app.config['MYSQL_DATABASE_DB']
         if self.app.config['MYSQL_DATABASE_CHARSET']:
             kwargs['charset'] = self.app.config['MYSQL_DATABASE_CHARSET']
+        kwargs['auth_plugin'] = 'mysql_native_password'
         return mysql.connector.connect(**kwargs)    # pylint:disable=star-args
 
     def before_request(self):

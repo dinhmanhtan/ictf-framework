@@ -47,7 +47,7 @@ def register_service(db_api_url_base, db_secret, service_name, service_info):
                     script_type = os.path.basename(script)
 
                     if script_type in {'setflag', 'getflag', 'benign', 'exploit'}:
-                        print (f"Uploading script {filename} [{script_type}]")
+                        print (f"Uploading script {script} [{script_type}]")
                         data = {"upload_id": upload_id, "filename": script, "type": script_type,
                                 "state":     service_info['state'], "service_id": service_id}
                         result = requests.post(db_api_url_base + "/script/new", data=data, params={'secret': db_secret})
@@ -71,7 +71,7 @@ def create_service(db_api_url_base, db_secret, service_path, service_state):
     service_yaml = os.path.abspath(os.path.join(service_path, './info.yaml'))
     if not os.path.isfile(service_yaml):
         raise Exception("Could not find service file for %s, tried %s. Skipping." % (service_path, service_yaml))
-    service_info = yaml.load(open(service_yaml, 'r'))
+    service_info = yaml.safe_load(open(service_yaml, 'r'))
 
     # Check that the service path matches the name in info.yaml
 
@@ -118,6 +118,7 @@ if __name__ == "__main__":
     game_config = json.load(open(sys.argv[2], 'r'))
 
     db_api = sys.argv[1]  # passed by terraform
+    #db_api = "localhost:5001"
     database_api_secret_path = SECRETS_FOLDER + "database-api/secret"
 
     if not os.path.isfile(database_api_secret_path):
@@ -125,5 +126,5 @@ if __name__ == "__main__":
 
     with open(database_api_secret_path, "r") as f:
         database_api_secret = f.read().rstrip()
-
+    #database_api_secret = "lol"
     create_all_services('http://{}'.format(db_api), database_api_secret, game_config['services'], game_config["service_metadata"]['host_dir'])

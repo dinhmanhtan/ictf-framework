@@ -1,13 +1,12 @@
-#from urllib.parse import urlencode
-from urlib import urlencode
+from urllib.parse import urlencode
+#from urllib import urlencode
 from flask import Flask, g, jsonify, send_from_directory
 from flask_restful import Resource, reqparse, Api, request
-from flask.ext.httpauth import HTTPBasicAuth
+from flask_httpauth import HTTPBasicAuth
 from passlib.apps import custom_app_context as pwd_context
 from passlib.utils import generate_password
-from itsdangerous import (TimedJSONWebSignatureSerializer
-                 as Serializer, BadSignature, SignatureExpired)
-from flask.ext.cache import Cache
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from flask_caching import Cache
 import os
 from functools import wraps
 import pycountry
@@ -24,7 +23,7 @@ app = Flask(__name__)
 auth = HTTPBasicAuth()
 api = Api(app)
 app.config.update(conf)
-cache = Cache(config={'CACHE_TYPE': 'redis'})
+cache = Cache(config={'CACHE_TYPE': 'RedisCache'})
 cache.init_app(app)
 
 
@@ -64,10 +63,10 @@ def check_game_started(func):
 
 def country_code(s):
     try:
-        c = pycountry.countries.get(alpha2=s)
+        c = pycountry.countries.get(alpha_2=s)
     except:
         raise TypeError("Not a valid country code")
-    return c.alpha2
+    return c.alpha_2
 
 
 def academic_email(s):
@@ -350,8 +349,10 @@ class Team(Resource):
                             help='The 2-letter ISO country code must not be blank')
         parser.add_argument('logo', required=False, type=b64_png,
                             help='A logo, in PNG format, 256x256 must be provided')
-        parser.add_argument('metadata', required=True, type=dict,
+        parser.add_argument('metadata', required=False, type=dict,
                             help="You must answer the metadata questions.  See /api/metadata")
+        parser.add_argument('login_token', required=True,help='login token')
+        parser.add_argument('flag_token', required=True, help='flag token')
         args = parser.parse_args()
         captcha, code = generate_captcha()
         # probably need to create pkl file and give the correct user access
@@ -400,17 +401,18 @@ def verify_captcha():
             if result['result'] != 'success':
                 return jsonify({'message': "Account creation failed because: " + result['fail_reason']}), 400
             team_id = result['team_id']
-            md = acct_args['metadata']
-            try:
-                resp = requests.post(app.config['DB_API_URL_BASE'] + "/team/metadata/add/" + str(team_id),
-                                     data={'label_data_json':json.dumps(md)},
-                                     params={'secret': app.config['DB_API_SECRET']})
-                if resp.status_code != 200:
-                    return jsonify({'message': "A weird error occurred on metadata submission.  Please contact the admins!"}),500
-            except:
-                return jsonify({'message': "A weird error occurred on metadata submission.  Please contact the admins!"}),500
+            #md = acct_args['metadata']
+            #try:
+            #    resp = requests.post(app.config['DB_API_URL_BASE'] + "/team/metadata/add/" + str(team_id),
+            #                         data={'label_data_json':json.dumps(md)},
+            #                         params={'secret': app.config['DB_API_SECRET']})
+            #    if resp.status_code != 200:
+            #        return jsonify({'message': "A weird error occurred on metadata submission.  Please contact the admins!"}),500
+            #except:
+            #    return jsonify({'message': "A weird error occurred on metadata submission.  Please contact the admins!"}),500
 
-            send_password_msg(acct_args['team_email'], acct_args['team_email'], password)
+            #send_password_msg(acct_args['team_email'], acct_args['team_email'], password)
+            print(password)
             #return '{"password": ' + password + '"}'
             return jsonify({'message': 'success'})
         else:
@@ -529,7 +531,8 @@ def get_teams_public():
     verified = []
     result = _db_api_get_authenticated("/teams/publicinfo")
     teamlist = result['teams'].values()
-    return teamlist
+    print(teamlist)
+    return list(teamlist)
 
 class Teams(Resource):
 
@@ -542,7 +545,7 @@ class Teams(Resource):
 def get_enabled_services():
     svcs = get_services()['services'].values()
     enabled_svcs = filter(lambda x: x['state'] == 'enabled', svcs)
-    return enabled_svcs
+    return list(enabled_svcs)
 
 
 class Services(Resource):
@@ -778,4 +781,4 @@ api.add_resource(VM, '/api/vm')
 
 
 if __name__ == '__main__':
-    app.run(debug=True,port=8888,host="0.0.0.0")
+    app.run(debug=True,port=9090,host="0.0.0.0")

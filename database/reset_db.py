@@ -20,7 +20,7 @@ def _init_database():
     cursor = database.cursor(raw=True, buffered=False)
 
     # Wipe the database and setup new one
-    with open("/home/ictf/ictf-framework/database/support/database.sql", "r") as file_:
+    with open("/opt/ictf/database/support/schema.sql", "r") as file_:
         setup_script = file_.read()
 
     # The library returns a generator for each statement, we need to eval all

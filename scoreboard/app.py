@@ -92,4 +92,4 @@ init_connections()
 
 if __name__ == '__main__':
     print("[*] Starting")
-    app.run(use_reloader=False, port=8080, host='0.0.0.0', debug=True, processes=24)
+    app.run(use_reloader=False, port=8080, host='0.0.0.0', debug=True, processes=1)

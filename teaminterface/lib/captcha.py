@@ -15,7 +15,7 @@ def random_font():
     #fonts = pyfiglet.FigletFont().getFonts()
     fonts = goodfonts
     f =  random.choice(fonts)
-    print f
+    print(f)
     return f
 
 
@@ -25,6 +25,7 @@ def generate_captcha():
     fg = pyfiglet.Figlet(font)
     code = generate_password(8,charset="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     captcha = fg.renderText(code)
+    print(code)
     return captcha,code
 
 r = Redis()
@@ -43,4 +44,4 @@ def get_captcha(code):
     return data
 
 if __name__ == '__main__':
-    print generate_captcha()[0]
+    print(generate_captcha()[0])

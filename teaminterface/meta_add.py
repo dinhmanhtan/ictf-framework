@@ -13,4 +13,4 @@ for q in qs:
         continue
     label, description = q.split("\t")
     resp = post(config['DB_API_URL_BASE'] + endpoint, data={'label': label, 'description':description}, params={'secret': config['DB_API_SECRET']})
-    print resp.content
+    print(resp.content)

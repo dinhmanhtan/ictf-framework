@@ -311,12 +311,13 @@ def team_add():
     academic_team = request.form.get("academic_team", 0)
     login_token = request.form.get("login_token", None)
     flag_token = request.form.get("flag_token", None)
+    team_id = request.form.get("team_id",None)
     if login_token is None or flag_token is None:
         return json.dumps({"result": "failed", "team_id": "NA", "fail_reason": "A flag or login token was missing"})
 
     cursor = mysql.cursor()
     result, team_id, fail_reason = create_team(cursor, name, country, logo, url, team_email, team_password,
-                                               hashed_password, academic_team, login_token, flag_token)
+                                               hashed_password, academic_team, team_id, login_token, flag_token)
     return json.dumps({"result": result, "team_id": team_id, "fail_reason": fail_reason})
 
 
@@ -402,6 +403,7 @@ def create_team(cursor, name, country, logo, url, team_email, team_password, has
 
     :return: a tuple (string result, int team_id, string fail_reason), described `team_add` and `team_add_direct`
     """
+    print(login_token,flag_token)
     def check_for_existing(column_name, value):
         """
         Small helper function, check if a column with the value exists in the team table, 
