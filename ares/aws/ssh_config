@@ -1,0 +1,18 @@
+Host *
+  Port 22
+  User ubuntu
+  UserKnownHostsFile "./sshkeys//known_hosts"
+  IdentitiesOnly yes
+
+Host database
+  Hostname 18.142.48.112
+  IdentityFile "./sshkeys//database-key.key"
+
+Host teamvm1
+  Hostname 13.213.38.71
+  IdentityFile "./sshkeys//teamvmmaster-key.key"
+
+Host teamvm2
+  Hostname 18.141.144.107
+  IdentityFile "./sshkeys//teamvmmaster-key.key"
+

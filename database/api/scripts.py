@@ -561,7 +561,13 @@ def script_ran(script_run_id):
              successful.
     """
     output = request.form.get("output", None)
-    error = int(request.form.get("error", 0))
+    error = request.form.get("error", 0)
+    if error == "False":
+       error = 0
+    elif error == "True":
+       error = 1
+    elif type(output) == bool:
+       error = int(error)
     error_message = request.form.get("error_message", None)
 
     cursor = mysql.cursor()

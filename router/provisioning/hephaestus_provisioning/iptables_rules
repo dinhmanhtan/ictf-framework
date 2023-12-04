@@ -18,7 +18,7 @@ COMMIT
 -A TEAM -p tcp -m tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG FIN,SYN,RST,PSH,ACK,URG -j DROP
 -A TEAM -p tcp -m tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE -j DROP
 -A TEAM -p tcp -m state --state RELATED,ESTABLISHED -j ACCEPT
--A TEAM -p tcp -m state --state NEW -m tcp ! --dport 10000:10100 -j DROP
+-A TEAM -p tcp -m state --state NEW -m tcp ! --dport 10000:20100 -j DROP
 -A TEAM ! -d 10.9.0.0/16 -p tcp -m state --state NEW -j DROP
 -A TEAM -p tcp -m state --state NEW -m tcp ! --tcp-flags FIN,SYN,RST,ACK SYN -j DROP
 -A TEAM -p tcp -m state --state NEW -j ACCEPT

@@ -16,11 +16,12 @@ from . import app, mysql, db_helpers
 from .utils import requires_auth, get_current_tick
 
 
-#@app.route("/teams_ping")
+# @app.route("/teams_ping")
 @app.route("/teams/ping")
 @app.route("/team/ping")
 def teams_ping():
     return "smaet"
+
 
 # Python 3 compatibility
 #
@@ -28,11 +29,11 @@ PY3 = sys.version_info[0] == 3
 
 # pylint:disable=invalid-name
 if PY3:
-    string_types = str,         # pragma: no flakes
-    text_type = str             # pragma: no flakes
+    string_types = (str,)  # pragma: no flakes
+    text_type = str  # pragma: no flakes
 else:
-    string_types = basestring,  # pragma: no flakes
-    text_type = unicode         # pragma: no flakes
+    string_types = (basestring,)  # pragma: no flakes
+    text_type = unicode  # pragma: no flakes
 # pylint:enable=invalid-name
 
 
@@ -43,8 +44,10 @@ def _generate_new_flag():
 
     :return: Flag following the predefined flag format.
     """
-    flag = "".join(random.choice(app.config["FLAG_ALPHABET"])
-                   for _ in range(app.config["FLAG_LENGTH"]))
+    flag = "".join(
+        random.choice(app.config["FLAG_ALPHABET"])
+        for _ in range(app.config["FLAG_LENGTH"])
+    )
     return "{0[FLAG_PREFIX]}{1}{0[FLAG_SUFFIX]}".format(app.config, flag)
 
 
@@ -55,19 +58,20 @@ def encode_string(string):
     """
 
     if isinstance(string, text_type):
-        string = string.encode('utf-8')
+        string = string.encode("utf-8")
     return string
 
 
 def hash_password(password):
     salt = app.config["USER_PASSWORD_SALT"]
-    hmac_ = hmac.new(encode_string(salt), encode_string(password),
-                     hashlib.sha512)
+    hmac_ = hmac.new(encode_string(salt), encode_string(password), hashlib.sha512)
     password_hashed = base64.b64encode(hmac_.digest())
     return password_hashed
 
+
 # Team login with token only
 #
+
 
 @app.route("/team/token/login", methods=["POST"])
 @requires_auth
@@ -103,24 +107,28 @@ def team_toke_login():
     cursor = mysql.cursor()
 
     if login_token is not None:
-        cursor.execute("""SELECT id, validated FROM teams
+        cursor.execute(
+            """SELECT id, validated FROM teams
                           WHERE login_token = %s """,
-                       (login_token,))
+            (login_token,),
+        )
     else:
         flag_token = request.form.get("flag_token", None)
-        cursor.execute("""SELECT id, validated FROM teams
+        cursor.execute(
+            """SELECT id, validated FROM teams
                                   WHERE flag_token = %s or login_token = %s""",
-                       (flag_token, flag_token, ))
-
+            (
+                flag_token,
+                flag_token,
+            ),
+        )
 
     row = cursor.fetchone()
 
     if row:
         team_id = row["id"]
         validated = row["validated"]
-        return json.dumps({"result": "success",
-                           "validated": validated,
-                           "id": team_id})
+        return json.dumps({"result": "success", "validated": validated, "id": team_id})
 
     return json.dumps({"result": "failure incorrect login"})
 
@@ -164,17 +172,17 @@ def team_authenticate():
 
     password_encrypted = hash_password(password)
 
-    cursor.execute("""SELECT id, validated FROM teams
+    cursor.execute(
+        """SELECT id, validated FROM teams
                       WHERE email = %s AND password = %s""",
-                   (email, password_encrypted))
+        (email, password_encrypted),
+    )
     row = cursor.fetchone()
 
     if row:
         team_id = row["id"]
         validated = row["validated"]
-        return json.dumps({"result": "success",
-                           "validated": validated,
-                           "id": team_id})
+        return json.dumps({"result": "success", "validated": validated, "id": team_id})
 
     return json.dumps({"result": "failure"})
 
@@ -208,23 +216,26 @@ def is_academic_team(team_id):
     """
     cursor = mysql.cursor()
 
-    cursor.execute("""SELECT id, academic_team FROM teams
+    cursor.execute(
+        """SELECT id, academic_team FROM teams
                       WHERE id = %s """,
-                   (team_id,))
+        (team_id,),
+    )
     row = cursor.fetchone()
 
     if row:
         team_id = row["id"]
         academic_team = row["academic_team"]
-        return json.dumps({"result": "success",
-                           "academic_team": academic_team,
-                           "is_academic" : (academic_team != 0),
-                           "id": team_id})
+        return json.dumps(
+            {
+                "result": "success",
+                "academic_team": academic_team,
+                "is_academic": (academic_team != 0),
+                "id": team_id,
+            }
+        )
 
     return json.dumps({"result": "failure"})
-
-
-
 
 
 @app.route("/team/changepass", methods=["POST"])
@@ -254,9 +265,11 @@ def team_changepass():
 
     password_encrypted = hash_password(password)
 
-    cursor.execute("""UPDATE teams SET password = %s
+    cursor.execute(
+        """UPDATE teams SET password = %s
                       WHERE id = %s""",
-                   (password_encrypted, team_id))
+        (password_encrypted, team_id),
+    )
 
     mysql.database.commit()
 
@@ -311,15 +324,34 @@ def team_add():
     academic_team = request.form.get("academic_team", 0)
     login_token = request.form.get("login_token", None)
     flag_token = request.form.get("flag_token", None)
-    team_id = request.form.get("team_id",None)
+    team_id = request.form.get("team_id", None)
     if login_token is None or flag_token is None:
-        return json.dumps({"result": "failed", "team_id": "NA", "fail_reason": "A flag or login token was missing"})
+        return json.dumps(
+            {
+                "result": "failed",
+                "team_id": "NA",
+                "fail_reason": "A flag or login token was missing",
+            }
+        )
 
     cursor = mysql.cursor()
-    result, team_id, fail_reason = create_team(cursor, name, country, logo, url, team_email, team_password,
-                                               hashed_password, academic_team, team_id, login_token, flag_token)
-    return json.dumps({"result": result, "team_id": team_id, "fail_reason": fail_reason})
-
+    result, team_id, fail_reason = create_team(
+        cursor,
+        name,
+        country,
+        logo,
+        url,
+        team_email,
+        team_password,
+        hashed_password,
+        academic_team,
+        team_id,
+        login_token,
+        flag_token,
+    )
+    return json.dumps(
+        {"result": result, "team_id": team_id, "fail_reason": fail_reason}
+    )
 
 
 # Team
@@ -327,16 +359,34 @@ def team_add():
 @app.route("/team/get_team_id", methods=["POST"])
 @requires_auth
 def team_get_id_by_flagtoken():
-
     flag_token = request.form.get("token")
 
     if login_token is None or flag_token is None:
-        return json.dumps({"result": "failed", "team_id": "NA", "fail_reason": "A flag or login token was missing"})
+        return json.dumps(
+            {
+                "result": "failed",
+                "team_id": "NA",
+                "fail_reason": "A flag or login token was missing",
+            }
+        )
 
     cursor = mysql.cursor()
-    result, team_id, fail_reason = create_team(cursor, name, country, logo, url, team_email, team_password,
-                                               hashed_password, academic_team, login_token, flag_token)
-    return json.dumps({"result": result, "team_id": team_id, "fail_reason": fail_reason})
+    result, team_id, fail_reason = create_team(
+        cursor,
+        name,
+        country,
+        logo,
+        url,
+        team_email,
+        team_password,
+        hashed_password,
+        academic_team,
+        login_token,
+        flag_token,
+    )
+    return json.dumps(
+        {"result": result, "team_id": team_id, "fail_reason": fail_reason}
+    )
 
 
 @app.route("/team/add_direct", methods=["POST"])
@@ -376,7 +426,7 @@ def team_add_direct():
     """
 
     name = request.form.get("name")
-    team_id = request.form.get("id")    
+    team_id = request.form.get("id")
     country = request.form.get("country", None)
     logo = request.form.get("logo", None)
     url = request.form.get("url", None)
@@ -388,54 +438,115 @@ def team_add_direct():
     flag_token = request.form.get("flag_token", None)
 
     if login_token is None or flag_token is None:
-        return json.dumps({"result": "failed", "team_id": team_id, "fail_reason": "A flag or login token was missing"})
+        return json.dumps(
+            {
+                "result": "failed",
+                "team_id": team_id,
+                "fail_reason": "A flag or login token was missing",
+            }
+        )
 
     cursor = mysql.cursor()
 
-    result, team_id, fail_reason = create_team(cursor, name, country, logo, url, team_email, team_password,
-                                               hashed_password, academic_team, team_id, login_token, flag_token)
-    return json.dumps({"result": result, "team_id": team_id, "fail_reason": fail_reason})
+    result, team_id, fail_reason = create_team(
+        cursor,
+        name,
+        country,
+        logo,
+        url,
+        team_email,
+        team_password,
+        hashed_password,
+        academic_team,
+        team_id,
+        login_token,
+        flag_token,
+    )
+    return json.dumps(
+        {"result": result, "team_id": team_id, "fail_reason": fail_reason}
+    )
 
-def create_team(cursor, name, country, logo, url, team_email, team_password, hashed_password, academic_team,
-                team_id = None, login_token=None, flag_token=None):
+
+def create_team(
+    cursor,
+    name,
+    country,
+    logo,
+    url,
+    team_email,
+    team_password,
+    hashed_password,
+    academic_team,
+    team_id=None,
+    login_token=None,
+    flag_token=None,
+):
     """
-    This method will actually create the team. 
+    This method will actually create the team.
 
     :return: a tuple (string result, int team_id, string fail_reason), described `team_add` and `team_add_direct`
     """
-    print(login_token,flag_token)
+    print(login_token, flag_token)
+
     def check_for_existing(column_name, value):
         """
-        Small helper function, check if a column with the value exists in the team table, 
+        Small helper function, check if a column with the value exists in the team table,
         :return: True if it exists, False if it does not
         """
-        query = """SELECT COUNT(*) as count FROM teams WHERE """ + column_name + """ = %s"""
+        query = (
+            """SELECT COUNT(*) as count FROM teams WHERE """ + column_name + """ = %s"""
+        )
         cursor.execute(query, (value,))
         result = cursor.fetchone()
         return result["count"] != 0
 
     # Sanity checks
     if team_id != None:
-        if check_for_existing('id', team_id):
+        if check_for_existing("id", team_id):
             return ("fail", None, "team id already in use")
-    
-    if check_for_existing('email', team_email):
-        return ("fail",  None, "team email already in use")
 
-    if check_for_existing('name', name):
+    if check_for_existing("email", team_email):
+        return ("fail", None, "team email already in use")
+
+    if check_for_existing("name", name):
         return ("fail", None, "team name already in use")
 
     if team_id == None:
-        cursor.execute("""INSERT INTO teams
+        cursor.execute(
+            """INSERT INTO teams
                                       (name, logo, url, country, email, password, academic_team, login_token, flag_token)
                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                       (name, logo, url, country, team_email, hashed_password, academic_team, login_token, flag_token))
+            (
+                name,
+                logo,
+                url,
+                country,
+                team_email,
+                hashed_password,
+                academic_team,
+                login_token,
+                flag_token,
+            ),
+        )
     else:
-        cursor.execute("""INSERT INTO teams
+        cursor.execute(
+            """INSERT INTO teams
                                       (id, name, logo, url, country, email, password, academic_team, login_token, flag_token)
                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                       (team_id, name, logo, url, country, team_email, hashed_password, academic_team, login_token, flag_token))
-        
+            (
+                team_id,
+                name,
+                logo,
+                url,
+                country,
+                team_email,
+                hashed_password,
+                academic_team,
+                login_token,
+                flag_token,
+            ),
+        )
+
     team_id = cursor.lastrowid
 
     mysql.database.commit()
@@ -497,7 +608,6 @@ def team_update(team_id):
     else:
         updates["validated = %s"] = validated
 
-
     if academic_team is None:
         updates["academic_team = %s"] = 1
     else:
@@ -515,30 +625,40 @@ def team_update(team_id):
 
     cursor = mysql.cursor()
 
-    print("UPDATE teams SET {} WHERE id = %s".format(update_stmt), tuple(update_values + [team_id]))
+    print(
+        "UPDATE teams SET {} WHERE id = %s".format(update_stmt),
+        tuple(update_values + [team_id]),
+    )
 
-    cursor.execute("UPDATE teams SET {} WHERE id = %s".format(update_stmt), tuple(update_values + [team_id]))
+    cursor.execute(
+        "UPDATE teams SET {} WHERE id = %s".format(update_stmt),
+        tuple(update_values + [team_id]),
+    )
     mysql.database.commit()
 
     return json.dumps({"result": "success"})
+
 
 @app.route("/team/key/get/<int:team_id>")
 @requires_auth
 def team_key_get(team_id):
     """The ``/game/on`` endpoint does not require auth
-       It looks for an entry in game table, which means the game has started
+    It looks for an entry in game table, which means the game has started
 
-       It can be reached at
-       ``/game/on``.
+    It can be reached at
+    ``/game/on``.
 
-       :return: JSON containing game_id.
-       """
+    :return: JSON containing game_id.
+    """
     to_return = {}
 
-    try :
+    try:
         cursor = mysql.cursor()
 
-        cursor.execute("SELECT team_id, ctf_key, root_key, ip, port FROM team_vm_key WHERE team_id = %s ", (team_id,))
+        cursor.execute(
+            "SELECT team_id, ctf_key, root_key, ip, port FROM team_vm_key WHERE team_id = %s ",
+            (team_id,),
+        )
 
         key_cursor = cursor.fetchone()
         if key_cursor is None:
@@ -547,9 +667,9 @@ def team_key_get(team_id):
             return json.dumps(to_return)
         to_return["team_id"] = key_cursor["team_id"]
         to_return["ctf_key"] = key_cursor["ctf_key"]
-        #to_return["root_key"] = key_cursor["root_key"]
+        # to_return["root_key"] = key_cursor["root_key"]
         to_return["ip"] = key_cursor["ip"]
-        #to_return["port"] = key_cursor["port"]
+        # to_return["port"] = key_cursor["port"]
         return json.dumps(to_return)
 
     except Exception as e:
@@ -560,13 +680,15 @@ def team_key_get(team_id):
 @app.route("/team/vm/get/<int:team_id>")
 @requires_auth
 def team_vm_get(team_id):
-
     to_return = {}
 
-    try :
+    try:
         cursor = mysql.cursor()
 
-        cursor.execute("SELECT team_id, ctf_key, root_key, ip, port FROM team_vm_key WHERE team_id = %s ", (team_id,))
+        cursor.execute(
+            "SELECT team_id, ctf_key, root_key, ip, port,instance_type, volume_size, private_ip FROM team_vm_key WHERE team_id = %s ",
+            (team_id,),
+        )
 
         key_cursor = cursor.fetchone()
         if key_cursor is None:
@@ -575,14 +697,18 @@ def team_vm_get(team_id):
             return json.dumps(to_return)
         to_return["team_id"] = key_cursor["team_id"]
         to_return["ctf_key"] = key_cursor["ctf_key"]
-        #to_return["root_key"] = key_cursor["root_key"]
+        # to_return["root_key"] = key_cursor["root_key"]
         to_return["ip"] = key_cursor["ip"]
-        #to_return["port"] = key_cursor["port"]
+        to_return["private_ip"] = key_cursor["private_ip"]
+        to_return["instance_type"] = key_cursor["instance_type"]
+        to_return["volume_size"] = key_cursor["volume_size"]
+
         return json.dumps(to_return)
 
     except Exception as e:
         print(e)
         return json.dumps({"result": "failure", "reason": str(e)})
+
 
 @app.route("/team/update/keys/<int:team_id>", methods=["POST"])
 @requires_auth
@@ -610,22 +736,29 @@ def team_update_keys(team_id):
         ctf_key = request.form.get("ctf_key", None)
         root_key = request.form.get("root_key", None)
         ip = request.form.get("ip", None)
-        port = request.form.get("port", None)
+        private_ip = request.form.get("private_ip", None)
+        instance_type = request.form.get("instance_type", None)
+        volume_size = request.form.get("volume_size", None)
 
         cursor = mysql.cursor()
-        cursor.execute("""UPDATE team_vm_key
+        cursor.execute(
+            """UPDATE team_vm_key
                                   SET ctf_key = %s,
                                       root_key = %s,
                                       ip = %s,
-                                      port = %s
+                                      private_ip = %s,
+                                      instance_type = %s,
+                                      volume_size = %s
                               WHERE team_id = %s""",
-                       (ctf_key, root_key, ip, port, team_id))
+            (ctf_key, root_key, ip, private_ip, instance_type, volume_size, team_id),
+        )
         mysql.database.commit()
 
         return json.dumps({"result": "success", "team_id": team_id})
     except Exception as e:
         print(e)
         return json.dumps({"result": "failure", "reason": str(e)})
+
 
 @app.route("/team/add/keys/<int:team_id>", methods=["POST"])
 @requires_auth
@@ -651,15 +784,29 @@ def team_add_keys(team_id):
     """
     try:
         ctf_key = request.form.get("ctf_key", None)
-        root_key = request.form.get("root_key", None) #useless
+        root_key = request.form.get("root_key", None)  # useless
         ip = request.form.get("ip", None)
-        port = request.form.get("port", None) #useless
+        port = request.form.get("port", None)  # useless
+        private_ip = request.form.get("private_ip", None)
+        instance_type = request.form.get("instance_type", None)
+        volume_size = request.form.get("volume_size", None)
 
         cursor = mysql.cursor()
-        cursor.execute("""INSERT INTO team_vm_key
-                                  (team_id, ctf_key, root_key, ip, port)
-                              VALUES (%s, %s, %s, %s, %s )""",
-                       (team_id, ctf_key, root_key, ip, port))
+        cursor.execute(
+            """INSERT INTO team_vm_key
+                                  (team_id, ctf_key, root_key, ip, port, private_ip, instance_type, volume_size)
+                              VALUES (%s, %s, %s, %s, %s, %s, %s, %s )""",
+            (
+                team_id,
+                ctf_key,
+                root_key,
+                ip,
+                port,
+                private_ip,
+                instance_type,
+                volume_size,
+            ),
+        )
         result_team_id = cursor.lastrowid
 
         mysql.database.commit()
@@ -669,9 +816,10 @@ def team_add_keys(team_id):
         print(e)
         return json.dumps({"result": "failure", "reason": str(e)})
 
+
 # Metadata
 #
-#@app.route("/metadata/labels/add", methods=["POST"])
+# @app.route("/metadata/labels/add", methods=["POST"])
 @app.route("/teams/metadata/labels/add", methods=["POST"])
 @requires_auth
 def metadata_labels_add():
@@ -698,16 +846,18 @@ def metadata_labels_add():
     label = request.form.get("label")
     cursor = mysql.cursor()
 
-    cursor.execute("""INSERT INTO team_metadata_labels
+    cursor.execute(
+        """INSERT INTO team_metadata_labels
                           (label, description)
                       VALUES (%s, %s)""",
-                   (label, description))
+        (label, description),
+    )
     mysql.database.commit()
 
     return json.dumps({"result": "success"})
 
 
-#@app.route("/metadata/labels")
+# @app.route("/metadata/labels")
 @app.route("/teams/metadata/labels")
 @requires_auth
 def metadata_labels():
@@ -773,10 +923,10 @@ def team_metadata_add(team_id):
     return json.dumps({"result": "success"})
 
 
-#@app.route("/metadata")
-#@app.route("/metadata/team/<int:team_id>")
-#@app.route("/metadata/label/<int:label_id>")
-#@app.route("/metadata/label/<int:label_id>/team/<int:team_id>")
+# @app.route("/metadata")
+# @app.route("/metadata/team/<int:team_id>")
+# @app.route("/metadata/label/<int:label_id>")
+# @app.route("/metadata/label/<int:label_id>/team/<int:team_id>")
 @app.route("/teams/metadata")
 @app.route("/teams/metadata/team/<int:team_id>")
 @app.route("/teams/metadata/label/<int:label_id>")
@@ -837,8 +987,7 @@ def metadata(label_id=None, team_id=None):
     filter_values = tuple(filter_values)
 
     if filter_stmt:
-        cursor.execute("{} WHERE {}".format(base_query, filter_stmt),
-                       filter_values)
+        cursor.execute("{} WHERE {}".format(base_query, filter_stmt), filter_values)
     else:
         cursor.execute(base_query)
 
@@ -886,29 +1035,35 @@ def team_info(team_id=None, email=None):
     filter_stmt = " AND ".join(filter_stmts)
     filter_values = tuple(filter_values)
 
-    cursor.execute("""SELECT id, name, url, country,
+    cursor.execute(
+        """SELECT id, name, url, country,
                              logo, email, validated
                         FROM teams
-                       WHERE {}"""
-                   .format(filter_stmt), filter_values)
+                       WHERE {}""".format(
+            filter_stmt
+        ),
+        filter_values,
+    )
 
     team = cursor.fetchone()
 
     # this is probably inefficient
-    cursor.execute("""SELECT latency, packetloss
+    cursor.execute(
+        """SELECT latency, packetloss
                         FROM team_connectivity_log
                        WHERE team_id = %s
                          AND created_on = (SELECT max(created_on)
                                              FROM team_connectivity_log
                                             WHERE team_id = %s)""",
-                    (team["id"], team["id"]))
+        (team["id"], team["id"]),
+    )
 
     try:
         team.update(cursor.fetchone())
     except TypeError:
         pass
-    if 'logo' in team:
-        team['logo'] = team['logo'].decode('utf-8')
+    if "logo" in team:
+        team["logo"] = team["logo"].decode("utf-8")
     return json.dumps(team)
 
 
@@ -942,13 +1097,17 @@ def team_latency(team_id):
     packetloss = request.form.get("packetloss", None)
 
     if latency is None or packetloss is None:
-        return json.dumps({"result": "fail",
-                           "message": "missing latency or packetloss"})
+        return json.dumps(
+            {"result": "fail", "message": "missing latency or packetloss"}
+        )
 
     cursor = mysql.cursor()
-    cursor.execute("""INSERT INTO team_connectivity_log
+    cursor.execute(
+        """INSERT INTO team_connectivity_log
                          (team_id, latency, packetloss)
-                      VALUES (%s,%s,%s)""", (team_id, latency, packetloss))
+                      VALUES (%s,%s,%s)""",
+        (team_id, latency, packetloss),
+    )
     mysql.database.commit()
 
     return json.dumps({"result": "success"})
@@ -985,28 +1144,38 @@ def team_vote_services():
     cursor = mysql.cursor()
     for service_name in services.keys():
         try:
-            cursor.execute("""SELECT id, team_id FROM services WHERE name=%s""", (service_name,))
+            cursor.execute(
+                """SELECT id, team_id FROM services WHERE name=%s""", (service_name,)
+            )
             curr_row = cursor.fetchone()
             if curr_row is None:
-                return json.dumps({"result": "failure", "reason": "unknown service %s" % service_name})
+                return json.dumps(
+                    {"result": "failure", "reason": "unknown service %s" % service_name}
+                )
             if int(curr_row["team_id"]) == int(team_id):
-                return json.dumps({"result": "failure", "reason": "cannot vote for own service"})
+                return json.dumps(
+                    {"result": "failure", "reason": "cannot vote for own service"}
+                )
 
             services[service_name] = curr_row["id"]
         except Exception as e:
             return json.dumps({"result": "failure", "reason": str(e)})
 
     try:
-        cursor.execute("""INSERT INTO vote_services (team_id, service_1, service_2, service_3)
+        cursor.execute(
+            """INSERT INTO vote_services (team_id, service_1, service_2, service_3)
                       VALUES(%s, %s, %s, %s)
                       ON DUPLICATE KEY UPDATE service_1=%s, service_2=%s, service_3=%s""",
-                       (team_id,
-                        services[request.form.get("service_1")],
-                        services[request.form.get("service_2")],
-                        services[request.form.get("service_3")],
-                        services[request.form.get("service_1")],
-                        services[request.form.get("service_2")],
-                        services[request.form.get("service_3")]))
+            (
+                team_id,
+                services[request.form.get("service_1")],
+                services[request.form.get("service_2")],
+                services[request.form.get("service_3")],
+                services[request.form.get("service_1")],
+                services[request.form.get("service_2")],
+                services[request.form.get("service_3")],
+            ),
+        )
         mysql.database.commit()
     except Exception as e:
         return json.dumps({"result": "failure", "reason": str(e)})
@@ -1042,14 +1211,15 @@ def team_dashboard_submit():
 
     cursor = mysql.cursor()
     try:
-        cursor.execute("""INSERT INTO dashboard_uploads (team_id, name, archive) VALUES(%s, %s, %s)""",
-                       (team_id,
-                        name,
-                        archive))
+        cursor.execute(
+            """INSERT INTO dashboard_uploads (team_id, name, archive) VALUES(%s, %s, %s)""",
+            (team_id, name, archive),
+        )
         mysql.database.commit()
     except Exception as e:
         return json.dumps({"result": "failure", "reason": str(e)})
     return json.dumps({"result": "success"})
+
 
 @app.route("/teams/token/info")
 @requires_auth
@@ -1077,24 +1247,30 @@ def teams_token_info():
     """
     cursor = mysql.cursor()
 
-    cursor.execute("""SELECT teams.id, name, flag_token, login_token, ctf_key, root_key, ip, port
+    cursor.execute(
+        """SELECT teams.id, name, flag_token, login_token, ctf_key, root_key, ip, port
                         FROM teams, team_vm_key tvk 
-                        WHERE teams.id = tvk.team_id """)
+                        WHERE teams.id = tvk.team_id """
+    )
     teams = []
     for row in cursor.fetchall():
         team_id = row["id"]
-        teams.append({"id": team_id,
-                        "name": row['name'],
-                        "instance_id": "team" + str(team_id),
-                        "flag_token": row['flag_token'],
-                        "login_token": row['login_token'],
-                        "root_key": row['root_key'],
-                        "ctf_key": row['ctf_key'],
-                        "ip": row['ip'],
-                        "port": row['port']
-                      })
+        teams.append(
+            {
+                "id": team_id,
+                "name": row["name"],
+                "instance_id": "team" + str(team_id),
+                "flag_token": row["flag_token"],
+                "login_token": row["login_token"],
+                "root_key": row["root_key"],
+                "ctf_key": row["ctf_key"],
+                "ip": row["ip"],
+                "port": row["port"],
+            }
+        )
 
     return json.dumps({"teams": teams})
+
 
 @app.route("/teams/info")
 @requires_auth
@@ -1126,8 +1302,10 @@ def teams_info():
     cursor = mysql.cursor()
 
     meta_map, extra_columns, join, where = {}, "", "", ""
-    cursor.execute("""SELECT id, label
-                        FROM team_metadata_labels""")
+    cursor.execute(
+        """SELECT id, label
+                        FROM team_metadata_labels"""
+    )
     for row in cursor.fetchall():
         meta_map[str(row["id"])] = row["label"]
 
@@ -1138,13 +1316,17 @@ def teams_info():
         ids = ", ".join(meta_map.keys())
         where = "WHERE team_metadata_label_id IN ({})".format(ids)
 
-    cursor.execute("""SELECT teams.id, name, url, country, validated, academic_team,
-                             email, logo {}
-                        FROM teams {} {}""".format(extra_columns, join, where))
+    cursor.execute(
+        """SELECT teams.id, name, url, country, validated, academic_team,
+                             email, logo,flag_token {}
+                        FROM teams {} {}""".format(
+            extra_columns, join, where
+        )
+    )
     teams = collections.defaultdict(lambda: collections.defaultdict(dict))
     for row in cursor.fetchall():
         team_id = row["id"]
-        row["logo"] = str(row["logo"])
+        row["logo"] = str(row["logo"].decode())
 
         if "meta_id" in row:
             row[meta_map[str(row["meta_id"])]] = row["meta_content"]
@@ -1183,9 +1365,11 @@ def teams_publicinfo():
     cursor = mysql.cursor()
 
     meta_map, extra_columns, join, where = {}, "", "", ""
-    cursor.execute("""SELECT id, label
+    cursor.execute(
+        """SELECT id, label
                         FROM team_metadata_labels
-                       WHERE is_public = TRUE""")
+                       WHERE is_public = TRUE"""
+    )
     for row in cursor.fetchall():
         meta_map[str(row["id"])] = row["label"]
 
@@ -1196,8 +1380,12 @@ def teams_publicinfo():
         ids = ", ".join(meta_map.keys())
         where = "WHERE team_metadata_label_id IN ({})".format(ids)
 
-    cursor.execute("""SELECT teams.id, name, url, country, validated, logo {}
-                        FROM teams {} {}""".format(extra_columns, join, where))
+    cursor.execute(
+        """SELECT teams.id, name, url, country, validated, logo {}
+                        FROM teams {} {}""".format(
+            extra_columns, join, where
+        )
+    )
     teams = collections.defaultdict(lambda: collections.defaultdict(dict))
     for row in cursor.fetchall():
         team_id = row["id"]
@@ -1212,7 +1400,7 @@ def teams_publicinfo():
     return json.dumps({"teams": teams})
 
 
-#@app.route("/vpnconfig/set", methods=["POST"])
+# @app.route("/vpnconfig/set", methods=["POST"])
 @app.route("/team/vpnconfig/set", methods=["POST"])
 @requires_auth
 def vpn_config_set():
@@ -1240,16 +1428,19 @@ def vpn_config_set():
     vpn_config = request.form.get("vpn_config")
 
     cursor = mysql.cursor()
-    cursor.execute("""INSERT INTO vpn_info (team_id, vpn_config)
+    cursor.execute(
+        """INSERT INTO vpn_info (team_id, vpn_config)
                       VALUES(%s, %s)
                       ON DUPLICATE KEY UPDATE vpn_config=%s""",
-                   (team_id, vpn_config, vpn_config))
+        (team_id, vpn_config, vpn_config),
+    )
     mysql.database.commit()
 
     return json.dumps({"result": "success"})
 
-#@app.route("/vpnconfig")
-#@app.route("/vpnconfig/team/<int:team_id>")
+
+# @app.route("/vpnconfig")
+# @app.route("/vpnconfig/team/<int:team_id>")
 @app.route("/teams/vpnconfig")
 @app.route("/teams/vpnconfig/team/<int:team_id>")
 @requires_auth
@@ -1293,8 +1484,7 @@ def vpn_config_get(team_id=None):
 
     base_query = "SELECT team_id, vpn_config FROM vpn_info"
     if filter_stmt:
-        cursor.execute("{} WHERE {}".format(base_query, filter_stmt),
-                       filter_values)
+        cursor.execute("{} WHERE {}".format(base_query, filter_stmt), filter_values)
     else:
         cursor.execute(base_query)
 
@@ -1305,8 +1495,9 @@ def vpn_config_get(team_id=None):
 
 # Flag API endpoints
 #
-@app.route("/flag/generate/service/<int:service_id>/team/<int:team_id>",
-           methods=["POST"])
+@app.route(
+    "/flag/generate/service/<int:service_id>/team/<int:team_id>", methods=["POST"]
+)
 @requires_auth
 def flag_generate(team_id, service_id):
     """The ``/flag/generate/service/<service_id>/team/<team_id>`` endpoint
@@ -1335,19 +1526,21 @@ def flag_generate(team_id, service_id):
 
     cursor = mysql.cursor()
     tick_id, _, _, _ = get_current_tick(cursor)
-    cursor.execute("""INSERT INTO flags
+    cursor.execute(
+        """INSERT INTO flags
                                   (team_id, service_id, flag, tick_id)
-                      VALUES (%s, %s, %s, %s)""", (team_id, service_id, flag, tick_id))
+                      VALUES (%s, %s, %s, %s)""",
+        (team_id, service_id, flag, tick_id),
+    )
     mysql.database.commit()
     id_ = cursor.lastrowid
 
-    return json.dumps({"flag": flag,
-                       "id": id_})
+    return json.dumps({"flag": flag, "id": id_})
 
 
 @app.route("/flag/set/<int:id>", methods=["POST"])
 @requires_auth
-def flag_set_cookie_and_flag_id(id):     # pylint: disable=C0103,W0622
+def flag_set_cookie_and_flag_id(id):  # pylint: disable=C0103,W0622
     """The ``/flag/set/<id>`` endpoint requires authentication and expects the
     ``id`` of the flag as additional argument. It is used to associate a
     cookie and flag_id with an existing flag.
@@ -1379,16 +1572,17 @@ def flag_set_cookie_and_flag_id(id):     # pylint: disable=C0103,W0622
     flag_id = request.form.get("flag_id")
 
     cursor = mysql.cursor()
-    cursor.execute("""UPDATE flags SET flag_id = %s, cookie = %s
+    cursor.execute(
+        """UPDATE flags SET flag_id = %s, cookie = %s
                       WHERE id = %s""",
-                   (flag_id, cookie, id))
+        (flag_id, cookie, id),
+    )
     mysql.database.commit()
 
-    return json.dumps({"id": id,
-                       "result": "success"})
+    return json.dumps({"id": id, "result": "success"})
 
 
-#@app.route("/getlatestflagids")
+# @app.route("/getlatestflagids")
 @app.route("/flag/latest")
 @requires_auth
 def flag_get_latest_flag_ids():
@@ -1418,7 +1612,8 @@ def flag_get_latest_flag_ids():
 
     # for each (team_id, service_id) pair get the flag_id of the most
     # recently created flag
-    cursor.execute("""SELECT f.flag_id AS flag_id,
+    cursor.execute(
+        """SELECT f.flag_id AS flag_id,
                              f.team_id AS team_id,
                              f.service_id AS service_id
                       FROM flags AS f
@@ -1430,7 +1625,8 @@ def flag_get_latest_flag_ids():
                       ON f.created_on = grouped_flags.max_created_on
                          AND f.team_id = grouped_flags.team_id
                          AND f.service_id = grouped_flags.service_id
-                      WHERE f.flag_id IS NOT NULL""")
+                      WHERE f.flag_id IS NOT NULL"""
+    )
 
     for result in cursor.fetchall():
         service_id = result["service_id"]
@@ -1442,7 +1638,7 @@ def flag_get_latest_flag_ids():
 
 
 # pylint: disable=invalid-name
-#@app.route("/getlatestflagandcookie/<int:team_id>/<int:service_id>")
+# @app.route("/getlatestflagandcookie/<int:team_id>/<int:service_id>")
 @app.route("/flag/latest/team/<int:team_id>/service/<int:service_id>")
 @requires_auth
 def flag_latest_flag_id_and_cookie(team_id, service_id):
@@ -1471,16 +1667,20 @@ def flag_latest_flag_id_and_cookie(team_id, service_id):
              flag_id and cookie.
     """
     cursor = mysql.cursor()
-    cursor.execute("""SELECT id, flag, cookie, flag_id FROM flags
+    cursor.execute(
+        """SELECT id, flag, cookie, flag_id FROM flags
                       WHERE team_id = %s AND service_id = %s
                         AND flag_id IS NOT NULL AND cookie IS NOT NULL
                       ORDER BY created_on DESC LIMIT 1""",
-                   (team_id, service_id))
+        (team_id, service_id),
+    )
     result = cursor.fetchone()
     if result is None:
         return json.dumps(dict())
     else:
         return json.dumps(result)
+
+
 # pylint:enable=invalid-name
 
 
@@ -1534,13 +1734,16 @@ def flag_submit():
     try:
         _ = int(team_id)
     except ValueError:
-        return json.dumps({'error': 'Invalid Team ID.'})
+        return json.dumps({"error": "Invalid Team ID."})
     flag = request.form.get("flag")
     attack_up_str = request.form.get("attack_up", "")
-    attack_up = True if attack_up_str.lower() == 'true' else False
+    attack_up = True if attack_up_str.lower() == "true" else False
 
-    to_return = db_helpers.submit_flag(team_id, flag, attack_up, app.config["NUMBER_OF_TICKS_FLAG_VALID"])
+    to_return = db_helpers.submit_flag(
+        team_id, flag, attack_up, app.config["NUMBER_OF_TICKS_FLAG_VALID"]
+    )
     return json.dumps(to_return)
+
 
 @app.route("/flag/submit_many", methods=["POST"])
 @requires_auth
@@ -1583,13 +1786,13 @@ def flag_submit_many():
     """
     info_submission = request.get_json()
 
-    team_id = info_submission['team_id']
-    if type(team_id) not in {int, long}:
-        return json.dumps({'error': 'Invalid Team ID.'})
+    team_id = info_submission["team_id"]
+    if type(team_id) not in {int}:
+        return json.dumps({"error": "Invalid Team ID."})
 
-    flags = info_submission['submitted_flags']
-    attack_up_str = info_submission.get("attack_up", '')
-    attack_up = True if attack_up_str.lower() == 'true' else False
+    flags = info_submission["submitted_flags"]
+    attack_up_str = info_submission.get("attack_up", "")
+    attack_up = True if attack_up_str.lower() == "true" else False
 
     result = []
     for cur_flag in flags:
@@ -1599,9 +1802,8 @@ def flag_submit_many():
             attack_up,
             app.config["MAX_INCORRECT_FLAGS_PER_TICK"],
             app.config["NUMBER_OF_TICKS_FLAG_VALID"],
-            app.config["ATTACKUP_HEAD_BUCKET_SIZE"]
+            app.config["ATTACKUP_HEAD_BUCKET_SIZE"],
         )
         result.append(submission_result)
 
     return json.dumps(result)
-

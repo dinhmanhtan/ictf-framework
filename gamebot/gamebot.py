@@ -135,6 +135,8 @@ def main():     # pylint:disable=missing-docstring,too-many-locals
                 log.info("Updating state of services across all teams.")
                 scripts_interface.update_state_of_services(tick_id - 1)
                 log.info("Updated state of services across all teams in:" + str(datetime.now() - old_time))
+                db_api.save_points_to_tick_score(tick_id - 1)
+                log.info("Updated teams's score to tick scores")
             else:
                 log.info("Ignoring Scoring, as this is first tick.")
 

@@ -55,10 +55,10 @@ def make_ssh_keys(num_teams):
             content_file.write(pubkey.exportKey('OpenSSH'))
 
         # now writing terraform config file
-        aws_key_config = AWS_KEY_TEMPLATE.substitute({'keyname': vm_name + "-key"})
+#        aws_key_config = AWS_KEY_TEMPLATE.substitute({'keyname': vm_name + "-key"})
 
-        with open(TF_SSHKEYS, "a+") as f:
-            f.write(aws_key_config)
+#        with open(TF_SSHKEYS, "a+") as f:
+#            f.write(aws_key_config)
 
     # creating an archive with the generated keys
     print("[+] Generating backup for current keys.")
@@ -275,8 +275,8 @@ mute 20
 
 
 def create_credentials(num_teams, num_routers):
-    # make_ssh_keys(num_teams)
-    make_vpn_keys(num_teams, num_routers)
+#     make_ssh_keys(num_teams)
+     make_vpn_keys(num_teams, num_routers)
 
 
 if __name__ == '__main__':

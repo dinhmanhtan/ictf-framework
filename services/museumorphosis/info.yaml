@@ -1,0 +1,8 @@
+service_name: museumorphosis
+type: crypto
+description: museumorphosis
+flag_id_description: Flags are identified by the metadata of the exihibit.Flagid is combined by the first 36 characters is exihibit_id and the last 36 character is museum_id 
+apt_dependencies: 
+    - sl
+authors:
+    - whoknow

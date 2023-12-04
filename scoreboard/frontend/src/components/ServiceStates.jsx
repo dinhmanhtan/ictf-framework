@@ -91,11 +91,16 @@ export default class ServiceStates extends Component {
 
   renderTableRows() {
     return _.map(this.state.serviceStates, (services, teamId) => {
-      let team = this.props.teams.find(t => t.id === teamId);
+//      console.log("services",services,teamId)
+//     console.log(this.props.teams)
+      let team = Object.values(this.props.teams).find(t => t.id == teamId);
       if (!team || !team.validated) {
+//        console.log("team",team)
         return;
       }
       let states = _.map(services, (s, sId) => {
+//        console.log("s",s)
+//        console.log("sId",sId)
         return (
           <td key={ `${teamId}-${sId}` } className="align--center" data-title={ s.service_name }>
             { this.renderStateTag(s.service_state, s.service_name, team.name) }

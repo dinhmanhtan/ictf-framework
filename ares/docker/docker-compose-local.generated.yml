@@ -1,0 +1,561 @@
+version: "3.4"
+
+volumes:
+  volume_simplecalc_1:
+  volume_simplecalc_2:
+  volume_mailbox_1:
+  volume_mailbox_2:
+  volume_museumorphosis1:
+  volume_museumorphosis2:
+  volume_submarine1:
+  volume_submarine2:
+  volume_backup_1:
+  volume_backup_2:
+  back_data_prosopagnosia_1:
+  volume_prosopagnosia_1:
+  prosopagnosia_psql_data_1:
+  back_data_prosopagnosia_2:
+  volume_prosopagnosia_2:
+  prosopagnosia_psql_data_2:
+  volume_hermicache_1:
+  volume_hermicache_2:
+  volume_hermicache_redis_1:
+  volume_hermicache_redis_2:
+
+networks:
+  master_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.31.128.0/17
+  warzone_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 162.31.128.0/17
+  mailbox_1:
+    driver: bridge
+  mailbox_2:
+    driver: bridge
+  museumorphosis_1:
+    driver: bridge
+  museumorphosis_2:
+    driver: bridge
+  chall_prosopagnosia_1:
+    driver: bridge
+  chall_prosopagnosia_2:
+    driver: bridge
+  chall_hermicache_1:
+    driver: bridge
+  chall_hermicache_2:
+    driver: bridge
+
+services:
+  database.ictf:
+    image: ictf_database
+    hostname: database
+    ports:
+      - "5001:80"
+    networks:
+      master_net:
+        aliases:
+          - database.ictf
+    sysctls:
+      - net.core.somaxconn=65535
+    environment:
+      - LOGSTASH_ID=database
+      - ICTF_DATABASE_SETTINGS=/opt/ictf/settings/database-api.py
+    volumes:
+      - /opt/ictf/database:/opt/ictf/database
+  gamebot.ictf:
+    image: ictf_gamebot
+    hostname: gamebot
+    networks:
+      master_net:
+        aliases:
+          - gamebot.ictf
+    environment:
+      - LOGSTASH_ID=gamebot
+      - NUM_SCRIPTBOTS=1
+      - RABBIT_ENDPOINT=dispatcher.ictf
+      - RABBIT_USERNAME=dummy
+      - RABBIT_PASSWORD=dummy
+    depends_on:
+      - database.ictf
+
+  scoreboard.ictf:
+    image: ictf_scoreboard
+    hostname: scoreboard
+    ports:
+      - "80:80"
+    networks:
+      master_net:
+        aliases:
+          - scoreboard.ictf
+    environment:
+      - LOGSTASH_ID=scoreboard
+    depends_on:
+      - database.ictf
+
+  teaminterface.ictf:
+    image: ictf_teaminterface
+    hostname: teaminterface
+    ports:
+      - "8080:80"
+    networks:
+      master_net:
+        aliases:
+          - teaminterface.ictf
+    environment:
+      - LOGSTASH_ID=teaminterface
+    depends_on:
+      - database.ictf
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/ictf/teaminterface/team_interface3.py:/opt/ictf/teaminterface/team_interface3.py
+
+  router.ictf:
+    image: ictf_router
+    hostname: router
+    environment:
+      - LOGSTASH_ID=router
+    privileged: true
+    networks:
+      master_net:
+        ipv4_address: 172.31.172.1
+        aliases:
+          - router.ictf
+      warzone_net:
+        ipv4_address: 162.31.172.1
+        aliases:
+          - router.ictf
+    volumes:
+      - ./vpnkeys/openvpn.zip:/etc/openvpn/openvpn.zip
+
+  dispatcher.ictf:
+    image: ictf_dispatcher
+    hostname: dispatcher
+    environment:
+      - RABBIT_USERNAME=dummy
+      - RABBIT_PASSWORD=dummy
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      master_net:
+        aliases:
+          - dispatcher.ictf
+    depends_on:
+      - database.ictf
+
+  scriptbot1.ictf:
+    image: ictf_scriptbot
+    hostname: scriptbot1
+
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+
+    environment:
+      - IS_LOCAL_REGISTRY=1
+      - API_SECRET=baEwFwsT0KRtdwYMrZuxMybgU
+      - REGISTRY_USERNAME="dummy"
+      - REGISTRY_PASSWORD="dummy"
+      - REGISTRY_ENDPOINT="dummy"
+      - LOGSTASH_ID=scriptbot1
+      - SCRIPTBOT_ID=1
+      - RABBIT_ENDPOINT=dispatcher.ictf
+      - RABBIT_USERNAME=dummy
+      - RABBIT_PASSWORD=dummy
+    networks:
+      master_net:
+        aliases:
+          - scriptbot1.ictf
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - database.ictf
+
+  teamvm1:
+    image: ictf_teamvm
+    hostname: team1
+    depends_on:
+      - router.ictf
+    ports:
+      - 10001:2222
+    volumes:
+      - volume_simplecalc_1:/opt/ictf/services/simplecalc
+      - volume_mailbox_1:/opt/ictf/services/mailbox
+      - volume_museumorphosis1:/opt/ictf/services/museumorphosis
+      - volume_submarine1:/opt/ictf/services/yellow_submarine
+      - volume_backup_1:/opt/ictf/services/backup
+      - volume_prosopagnosia_1:/opt/ictf/services/prosopagnosia
+      - volume_hermicache_1:/opt/ictf/services/hermicache
+      - ./vpnkeys/team1.ovpn:/etc/openvpn/client.conf
+      - ./sshkeys/team1-key.pub:/home/ctf/.ssh/authorized_keys
+
+    environment:
+      - TEAM_ID=1
+
+    #entrypoint: /bin/bash -c "chown ctf:ctf /home/ctf/.ssh/authorized_keys;chmod -R go= /home/ctf/.ssh & socat TCP-LISTEN:20001,fork TCP:chall_simplecalc_1:6666 & /root/start.sh"
+
+    entrypoint: /bin/bash -c "chown ctf:ctf /home/ctf/.ssh/authorized_keys;chmod -R go= /home/ctf/.ssh & socat TCP-LISTEN:20001,fork TCP:chall_simplecalc_1:6666 & socat TCP-LISTEN:20002,fork TCP:chall_yellow_submarine_1:7777 & socat TCP-LISTEN:20003,fork TCP:chall_prosopagnosia_1:15345 & socat TCP-LISTEN:20004,fork TCP:chall_hermicache_1:8080 & socat TCP-LISTEN:20005,fork TCP:chall_backup_1:9999 & socat TCP-LISTEN:20006,fork TCP:chall_mailbox_1:3131 & socat TCP-LISTEN:20007,fork TCP:chall_museumorphosis_1:80  & /root/start.sh"
+
+    privileged: true
+
+    networks:
+      warzone_net:
+        aliases:
+          - teamvm1
+
+  teamvm2:
+    image: ictf_teamvm
+    hostname: team2
+    depends_on:
+      - router.ictf
+    ports:
+      - 10002:2222
+    volumes:
+      - volume_simplecalc_2:/opt/ictf/services/simplecalc
+      - volume_mailbox_2:/opt/ictf/services/mailbox
+      - volume_museumorphosis2:/opt/ictf/services/museumorphosis
+      - volume_submarine2:/opt/ictf/services/yellow_submarine
+      - volume_backup_2:/opt/ictf/services/backup
+      - volume_prosopagnosia_2:/opt/ictf/services/prosopagnosia
+      - volume_hermicache_2:/opt/ictf/services/hermicache
+      - ./vpnkeys/team2.ovpn:/etc/openvpn/client.conf
+      - ./sshkeys/team2-key.pub:/home/ctf/.ssh/authorized_keys
+    environment:
+      - TEAM_ID=2
+
+    #entrypoint: /bin/bash -c "chown ctf:ctf /home/ctf/.ssh/authorized_keys;chmod -R go= /home/ctf/.ssh & socat TCP-LISTEN:20001,fork TCP:chall_simplecalc_2:6666  & /root/start.sh"
+    entrypoint: /bin/bash -c "chown ctf:ctf /home/ctf/.ssh/authorized_keys;chmod -R go= /home/ctf/.ssh & socat TCP-LISTEN:20001,fork TCP:chall_simplecalc_2:6666 & socat TCP-LISTEN:20002,fork TCP:chall_yellow_submarine_2:7777 & socat TCP-LISTEN:20003,fork TCP:chall_prosopagnosia_2:15345 & socat TCP-LISTEN:20004,fork TCP:chall_hermicache_2:8080 & socat TCP-LISTEN:20005,fork TCP:chall_backup_2:9999 & socat TCP-LISTEN:20006,fork TCP:chall_mailbox_2:3131 & socat TCP-LISTEN:20007,fork TCP:chall_museumorphosis_2:80  & /root/start.sh"
+    privileged: true
+
+    networks:
+      warzone_net:
+        aliases:
+          - teamvm2
+
+  chall_yellow_submarine_1:
+    image: yellow_submarine
+    hostname: chall_yellow_submarine_1
+    depends_on:
+      - teamvm1
+
+    volumes:
+      - volume_submarine1:/home/chall/service/
+    networks:
+      warzone_net:
+
+  chall_yellow_submarine_2:
+    image: yellow_submarine
+    hostname: chall_yellow_submarine_2
+    depends_on:
+      - teamvm2
+
+    volumes:
+      - volume_submarine2:/home/chall/service/
+
+    networks:
+      warzone_net:
+
+  chall_museumorphosis_1:
+    hostname: chall_museumorphosis_1
+    #restart: unless-stopped
+    image: museumorphosis_nginx
+    #ports:
+    #   - 8888:80
+    volumes:
+      - ./chall/museumorphosis_nginx_1.conf:/etc/nginx/conf.d/nginx.conf
+    environment:
+      - api=museumorphosis_api_1
+    networks:
+      - warzone_net
+      - museumorphosis_1
+    depends_on:
+      - museumorphosis_api_1
+
+  chall_museumorphosis_2:
+    hostname: chall_museumorphosis_2
+    #restart: unless-stopped
+    image: museumorphosis_nginx
+    #ports:
+    #  - 8888:80
+    volumes:
+      - ./chall/museumorphosis_nginx_2.conf:/etc/nginx/conf.d/nginx.conf
+    environment:
+      - api=museumorphosis_api_2
+    networks:
+      - warzone_net
+      - museumorphosis_2
+    depends_on:
+      - museumorphosis_api_2
+
+  museumorphosis_api_1:
+    image: museumorphosis
+    hostname: museumorphosis_api_1
+    volumes:
+      - volume_museumorphosis1:/home/chall/service/
+    depends_on:
+      - teamvm1
+    command: /bin/bash -c "gin --port 8000 run"
+    networks:
+      - museumorphosis_1
+
+  museumorphosis_api_2:
+    image: museumorphosis
+    hostname: museumorphosis_api_2
+    volumes:
+      - volume_museumorphosis2:/home/chall/service/
+    depends_on:
+      - teamvm2
+    command: /bin/bash -c "gin --port 8000 run"
+    networks:
+      - museumorphosis_2
+
+  mailbox_postgres_1:
+    image: postgres:14.4-alpine
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+    networks:
+      - mailbox_1
+
+  mailbox_postgres_2:
+    image: postgres:14.4-alpine
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+    networks:
+      - mailbox_2
+
+  chall_mailbox_1:
+    image: mailbox
+    hostname: chall_mailbox_1
+    depends_on:
+      - teamvm1
+      - mailbox_postgres_1
+    environment:
+      - DB_HOST=mailbox_postgres_1
+    volumes:
+      - volume_mailbox_1:/home/chall/service/
+
+    networks:
+      - warzone_net
+      - mailbox_1
+
+  chall_mailbox_2:
+    image: mailbox
+    hostname: chall_mailbox_2
+    depends_on:
+      - teamvm2
+      - mailbox_postgres_2
+    environment:
+      - DB_HOST=mailbox_postgres_2
+    volumes:
+      - volume_mailbox_2:/home/chall/service/
+
+    networks:
+      - warzone_net
+      - mailbox_2
+
+  chall_backup_1:
+    image: backup
+    hostname: chall_backup_1
+    depends_on:
+      - teamvm1
+
+    volumes:
+      - volume_backup_1:/home/chall/service/
+
+    networks:
+      warzone_net:
+
+  chall_backup_2:
+    image: backup
+    hostname: chall_backup_2
+    depends_on:
+      - teamvm2
+
+    volumes:
+      - volume_backup_2:/home/chall/service/
+
+    networks:
+      warzone_net:
+
+  chall_prosopagnosia_1:
+    image: prosopagnosia_nginx
+    hostname: chall_prosopagnosia_1
+    volumes:
+      - back_data_prosopagnosia_1:/var/www/roms
+      - ./chall/prosopagnosia_nginx_1.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - chall_prosopagnosia_1
+      - warzone_net
+
+  prosopagnosia_api_1:
+    hostname: prosopagnosia_api_1
+    image: prosopagnosia
+    restart: always
+    volumes:
+      - back_data_prosopagnosia_1:/var/prosopagnosia
+      - volume_prosopagnosia_1:/home/chall/service/
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - prosopagnosia_postgres_1
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_HOST: prosopagnosia_postgres_1
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: db
+      SVM_STORAGE_PATH: /var/prosopagnosia
+    networks:
+      - chall_prosopagnosia_1
+
+  prosopagnosia_postgres_1:
+    image: postgres:13.2-alpine
+    #    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db
+    volumes:
+      - ./chall/init_prosopagnosia.sql:/docker-entrypoint-initdb.d/init.sql
+      - prosopagnosia_psql_data_1:/var/lib/postgresql/data
+    networks:
+      - chall_prosopagnosia_1
+
+  chall_prosopagnosia_2:
+    image: prosopagnosia_nginx
+    hostname: chall_prosopagnosia_2
+    volumes:
+      - back_data_prosopagnosia_2:/var/www/roms
+      - ./chall/prosopagnosia_nginx_2.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - chall_prosopagnosia_2
+      - warzone_net
+
+  prosopagnosia_api_2:
+    hostname: prosopagnosia_api_2
+    image: prosopagnosia
+    restart: always
+    volumes:
+      - back_data_prosopagnosia_2:/var/prosopagnosia
+      - volume_prosopagnosia_2:/home/chall/service/
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - prosopagnosia_postgres_2
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_HOST: prosopagnosia_postgres_2
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: db
+      SVM_STORAGE_PATH: /var/prosopagnosia
+    networks:
+      - chall_prosopagnosia_2
+
+  prosopagnosia_postgres_2:
+    image: postgres:13.2-alpine
+    #    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db
+    volumes:
+      - ./chall/init_prosopagnosia.sql:/docker-entrypoint-initdb.d/init.sql
+      - prosopagnosia_psql_data_2:/var/lib/postgresql/data
+    networks:
+      - chall_prosopagnosia_2
+
+  chall_hermicache_1:
+    hostname: chall_hermicache_1
+    image: hermicache
+    restart: always
+    entrypoint: /bin/sh -c "julia install.jl; julia Server.jl"
+    depends_on:
+      - teamvm1
+      - hermicache_redis_1
+    environment:
+      REDIS_HOST: hermicache_redis_1
+      ENV: PROD
+    networks:
+      - chall_hermicache_1
+      - warzone_net
+    volumes:
+      - volume_hermicache_1:/home/chall/service/
+
+  hermicache_redis_1:
+    image: redis:7.0.5-alpine
+    #restart: unless-stopped
+    volumes:
+      - volume_hermicache_redis_1:/vault/books
+    networks:
+      - chall_hermicache_1
+
+  chall_hermicache_2:
+    hostname: chall_hermicache_2
+    image: hermicache
+    restart: always
+    entrypoint: /bin/sh -c "julia install.jl; julia Server.jl"
+    depends_on:
+      - teamvm2
+      - hermicache_redis_2
+    environment:
+      REDIS_HOST: hermicache_redis_2
+      ENV: PROD
+    networks:
+      - chall_hermicache_2
+      - warzone_net
+    volumes:
+      - volume_hermicache_2:/home/chall/service/
+
+  hermicache_redis_2:
+    image: redis:7.0.5-alpine
+    #restart: unless-stopped
+    volumes:
+      - volume_hermicache_redis_2:/vault/books
+    networks:
+      - chall_hermicache_2
+
+  chall_simplecalc_1:
+    image: simplecalc
+    hostname: chall_simplecalc_1
+    depends_on:
+      - teamvm1
+
+    volumes:
+      - volume_simplecalc_1:/home/chall/service/
+
+    networks:
+      warzone_net:
+
+  chall_simplecalc_2:
+    image: simplecalc
+    hostname: chall_simplecalc_2
+    depends_on:
+      - teamvm2
+
+    volumes:
+      - volume_simplecalc_2:/home/chall/service/
+
+    networks:
+      warzone_net:
+
+  #    logger.ictf:
+  #        image: ictf_logger
+  #        hostname: logger
+  #        ports:
+  #            - "5601:5601"
+  #            - "3000:3000"
+  #        networks:
+  #          master_net:
+  #            aliases:
+  #              - logger.ictf
+  #        environment:
+  #            - LOGSTASH_ID=logger

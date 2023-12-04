@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>A lil demo scene!</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div class="content">
+    <div class="block" id="send-rom">
+        <form>
+            <fieldset>
+                <div>
+                    <label for="rom-name">Rom name:</label><input id="rom-name" type="text" onchange=""/>
+                </div>
+                <div>
+                    <label for="rom-author">Author name:</label><input id="rom-author" type="text" onchange=""/>
+                </div>
+                <div>
+                    <label for="rom-secret">Access secret:</label><input id="rom-secret" type="text" onchange=""/>
+                </div>
+                <div>
+                    <input id="rom-file" type="file" onchange=""/>
+                </div>
+            </fieldset>
+            <button id="send-rom-button" type="button">Upload My Great Rom!</button>
+        </form>
+    </div>
+
+    <div class="block" id="block-list" hidden>
+        <p class="test-medium">
+            <b>Other users already released their demos:</b>
+        </p>
+    </div>
+</div>
+
+<script src="/scripts.js"></script>
+
+</body>
+</html>

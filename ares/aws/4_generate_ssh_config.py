@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import subprocess
 import argparse
@@ -104,8 +104,9 @@ def get_instance_public_ip(instance_name, terraform_path):
 
 
 def generate_ssh_config(terraform_path):
-    terraform_outputs = subprocess.check_output("{} output -json".format(terraform_path), shell=True)
+    terraform_outputs = subprocess.check_output("{} -chdir='./infrastructure' output -json".format(terraform_path), shell=True)
     parsed_outputs    = json.loads(terraform_outputs.decode('utf-8'))
+    print(parsed_outputs)
     with open(OUTPUT_FILE, 'w') as out_f:
         def write_host_entry(name, ip, key):
             out_f.write('Host %s\n' % name)
@@ -142,7 +143,7 @@ def create_ssh_config(terraform_path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--terraform_path', type=str, default="terraform",
+    parser.add_argument('-t', '--terraform_path', type=str, default="terraform.exe",
                         help='Path to the terraform tool (default: terraform in your $PATH)')
     args = parser.parse_args()
 

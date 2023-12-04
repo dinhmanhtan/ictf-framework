@@ -27,60 +27,6 @@ variable "router_cidr" {
     type = string
 }
 
-variable "database_instance_type"  {
-    default = "m5.2xlarge"
-    description = "Database AWS instance type"
-    type = string
-}
-
-variable "router_instance_type"  {
-    default = "m5.8xlarge"
-    description = "Router AWS instance type"
-    type = string
-}
-
-variable "scriptbot_instance_type"  {
-    default = "m5.2xlarge"
-    description = "Script bot AWS instance type"
-    type = string
-}
-
-variable "scoreboard_instance_type"  {
-    default = "m5.2xlarge"
-    description = "Scoreboard AWS instance type"
-    type = string
-}
-
-variable "gamebot_instance_type"  {
-    default = "m5.2xlarge"
-    description = "Game bot AWS instance type"
-    type = string
-}
-
-variable "dispatcher_instance_type"  {
-    default = "m5.2xlarge"
-    description = "Dispatcer AWS instance type"
-    type = string
-}
-
-variable "logger_instance_type"  {
-    default = "m5.2xlarge"
-    description = "Logger AWS instance type"
-    type = string
-}
-
-variable "teaminterface_instance_type"  {
-    default = "m5.2xlarge"
-    description = "Team interface AWS instance type"
-    type = string
-}
-
-variable "teamvm_instance_type"  {
-    default = "m5.2xlarge"
-    description = "Team VM AWS instance type"
-    type = string
-}
-
 variable "access_key"  {
     description = "AWS access key"
     type = string
@@ -115,47 +61,159 @@ variable "game_config_file" {
 variable "database_registry_repository_url" {
     description = "Registry repository url pointing to the database docker image"
     type = string
-    default = ""
+    default = "503448012112.dkr.ecr.ap-southeast-1.amazonaws.com/ictf_database"
 }
 
 variable "gamebot_registry_repository_url" {
     description = "Registry repository url pointing to the gamebot docker image"
     type = string
-    default = ""
+    default = "503448012112.dkr.ecr.ap-southeast-1.amazonaws.com/ictf_gamebot"
 }
 
 variable "scoreboard_registry_repository_url" {
     description = "Registry repository url pointing to the scoreboard docker image"
     type = string
-    default = ""
+    default = "503448012112.dkr.ecr.ap-southeast-1.amazonaws.com/ictf_scoreboard"
 }
 
 variable "teaminterface_registry_repository_url" {
     description = "Registry repository url pointing to the teaminterface docker image"
     type = string
-    default = ""
+    default = "503448012112.dkr.ecr.ap-southeast-1.amazonaws.com/ictf_teaminterface"
 }
 
 variable "scriptbot_registry_repository_url" {
     description = "Registry repository url pointing to the scriptbot docker image"
     type = string
-    default = ""
+    default = "503448012112.dkr.ecr.ap-southeast-1.amazonaws.com/ictf_scriptbot"
 }
 
 variable "logger_registry_repository_url" {
     description = "Registry repository url pointing to the logger docker image"
     type = string
-    default = ""
+    default = "503448012112.dkr.ecr.ap-southeast-1.amazonaws.com/ictf_logger"
 }
 
 variable "router_registry_repository_url" {
     description = "Registry repository url pointing to the router docker image"
     type = string
-    default = ""
+    default = "503448012112.dkr.ecr.ap-southeast-1.amazonaws.com/ictf_router"
 }
 
 variable "dispatcher_registry_repository_url" {
     description = "Registry repository url pointing to the dispatcher docker image"
     type = string
-    default = ""
+    default = "503448012112.dkr.ecr.ap-southeast-1.amazonaws.com/ictf_dispatcher"
+}
+
+
+
+
+
+variable "database_configuration" {
+    type = object({
+        instance_type    = string
+        volume_size = string
+    })
+    default = {
+        instance_type = "t2.small"
+        volume_size = 15
+    }
+}
+variable "teamvm_configuration" {
+    type = list(object({
+        id = string
+        instance_type    = string
+        volume_size = string
+    }))
+    default =[
+        {
+        id = 1
+        instance_type = "t2.small"
+        volume_size = 15
+        },
+        {
+        id = 2
+        instance_type = "t2.small"
+        volume_size = 15
+        }
+    ]
+}
+
+variable "logger_configuration" {
+    type = object({
+        instance_type    = string
+        volume_size = string
+    })
+    default = {
+        instance_type = "t2.large"
+        volume_size = 40
+    }
+}
+
+variable "router_configuration" {
+    type = object({
+        instance_type    = string
+        volume_size = string
+    })
+    default = {
+        instance_type = "t2.small"
+        volume_size = 15
+    }
+}
+
+variable "scriptbot_configuration" {
+    type = list(object({
+        id = string
+        instance_type    = string
+        volume_size = string
+    }))
+    default = [{
+        id = 1
+        instance_type = "t2.small"
+        volume_size = 15
+    }]
+}
+variable "gamebot_configuration" {
+    type = object({
+        instance_type    = string
+        volume_size = string
+    })
+    default = {
+        instance_type = "t2.small"
+        volume_size = 15
+    }
+}
+
+variable "scoreboard_configuration" {
+    type = object({
+        instance_type    = string
+        volume_size = string
+    })
+    default = {
+        instance_type = "t2.small"
+        volume_size = 15
+    }
+}
+
+variable "dispatcher_configuration" {
+    type = object({
+        instance_type    = string
+        volume_size = string
+    })
+    default = {
+        instance_type = "t2.small"
+        volume_size = 10
+    }
+}
+
+variable "teaminterface_configuration" {
+    type = object({
+        instance_type    = string
+        volume_size = string
+    })
+    default = {
+        instance_type = "t2.small"
+        volume_size = 15
+    }
 }

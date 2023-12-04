@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import math
 
 import argparse
@@ -30,17 +30,17 @@ if __name__ == '__main__':
 
     if args.dev_mode:
         vars.update({
-            "database_instance_type": 't3.small',
-            "router_instance_type": "t3.small",
-            "scriptbot_instance_type": "t3.small",
-            "scoreboard_instance_type": "t3.small",
-            "gamebot_instance_type": "t3.small",
-            "teaminterface_instance_type": "t3.small",
-            "teamvm_instance_type": "t3.small",
-            "dispatcher_instance_type": "t3.small",
+            "database_instance_type": 't2.micro',
+            "router_instance_type": "t2.micro",
+            "scriptbot_instance_type": "t2.micro",
+            "scoreboard_instance_type": "t2.micro",
+            "gamebot_instance_type": "t2.micro",
+            "teaminterface_instance_type": "t2.micro",
+            "teamvm_instance_type": "t2.micro",
+            "dispatcher_instance_type": "t2.micro",
             # This instance cannot be less powerful than t3.large otherwise
             # it won't work
-            "logger_instance_type": "t3.large",
+            #"logger_instance_type": "t3.large",
         })
 
     if args.registry_url != 'none':

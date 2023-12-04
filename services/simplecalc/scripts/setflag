@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python3
 
 import random
 import string
@@ -30,12 +30,12 @@ def set_flag(ip, port, flag):
 
     r = Netcat((ip, port))
     r.recvuntil("username:")
-    # flag_id = somestr()
-    flag_id = "someid"
+    flag_id = somestr()
+    #flag_id = "someid"
     r.send(flag_id + "\n")
     r.recvuntil("password:")
-    # token = somestr()
-    token = "totallyrandomtoken"
+    token = somestr()
+    #token = "totallyrandomtoken"
     r.send(token + "\n")
     r.recvuntil("work:")
     title = flag
@@ -66,7 +66,7 @@ def set_flag(ip, port, flag):
             variables[var_num] = (variables[var2_num] * const) & 0xffffffff
         if op == "/":
             signedness = -1 if variables[var2_num] * const < 0 else 1
-            variables[var_num] = ((abs(variables[var2_num]) / abs(const)) *
+            variables[var_num] = int((abs(variables[var2_num]) / abs(const)) *
                                   signedness) & 0xffffffff
         if variables[var_num] > 0x7fffffff:
             variables[var_num] = -(2**32 - variables[var_num])
@@ -74,7 +74,7 @@ def set_flag(ip, port, flag):
     r.send("\n")
     r.recvuntil("result\n")
     r.send("R\n")
-    received_title = r.recvuntil("\n").strip()
+    received_title = r.recvuntil("\n").strip().decode()
 
     if title != received_title:
         response['error'] = True
@@ -83,7 +83,7 @@ def set_flag(ip, port, flag):
 
     for i in range(20):
         expected = "V" + str(i) + ": " + str(variables[i])
-        actual = r.recvuntil("\n").strip()
+        actual = r.recvuntil("\n").strip().decode()
         if expected != actual:
             response['error'] = True
             response['payload'] = "ERROR: The string received ({}) does not match the expected one ({})".format(actual, expected)
@@ -99,10 +99,10 @@ def set_flag(ip, port, flag):
 
 if __name__ == "__main__":
     try:
-        print json.dumps(set_flag(sys.argv[1], int(sys.argv[2]), sys.argv[3]))
+        print(json.dumps(set_flag(sys.argv[1], int(sys.argv[2]), sys.argv[3])))
     except Exception as e:
         response = {
             "error": True,
             "payload": str(e) + "\n" + traceback.format_exc()
         }
-        print json.dumps(response)
+        print(json.dumps(response))

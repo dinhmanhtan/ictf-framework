@@ -7,7 +7,7 @@ import coloredlogs
 import requests
 from datetime import datetime
 from settings import *
-
+import math
 
 class DBApi:
 
@@ -30,6 +30,7 @@ class DBApi:
     SET_SERVICE_STATE = 'service/state/set/%s/team/%s'
     BULK_UPDATE_SERVICE_STATE = 'service/state/set/bulk'
     PING_DBAPI = 'game/ping'
+
 
     GET_SCRIPTS_TO_RUN = 'scripts/get/torun/%s'
     GET_FULL_GAME_STATE = 'game/state'
@@ -91,10 +92,8 @@ class DBApi:
         target_url = self.__build_url(DBApi.PING_DBAPI)
         try:
             ping_response = urllib.request.urlopen(target_url[0]).read()
-            print(ping_response)
             return ping_response == b'lareneg'
         except IOError:
-            print(str(IOError))
             return False
 
     def get_tick_config(self):
@@ -525,3 +524,76 @@ class DBApi:
 
         self.log.info("Got captured flag info Response")
         return flags_response
+
+    def teams_score_by_tick_and_servcice(self,tick_id):
+        team_ids = self.get_all_team_ids()
+        service_ids = self.get_all_service_ids()
+        score_teams = {}
+
+        for team_id in team_ids:
+            team = {}
+            for service_id in service_ids:
+
+                score = {"attack_points": 0, "defense_points" : 0, "sla" : 0}
+                team[service_id] = score
+            score_teams[team_id] = team
+
+        state_flags = self.get_captured_flag_info(tick_id)
+        print(state_flags)
+        lost_flags = state_flags['lost_flags']
+
+        for team_id in team_ids:
+            if len(lost_flags[team_id]) == 0:
+                for service_id in service_ids:
+                    score_teams[team_id][service_id]["defense_points"] = 50
+            else:
+                team = lost_flags[team_id]
+                for service_id,exploited_teams in team.items():
+                    avg_point = math.floor(50 / len(exploited_teams))
+                    for exploited_team in exploited_teams:
+                        for team_id, flag_id in exploited_team.items():
+                            score_teams[team_id][service_id]["attack_points"] += avg_point
+        return score_teams,team_ids,service_ids
+
+    def save_points_to_tick_score(self,tick_id):
+        score_teams, team_ids, service_ids = self.teams_score_by_tick_and_servcice(tick_id)
+        service_state = self.get_services_state(tick_id)
+
+        state = {}
+        for service_id in service_ids:
+            up = []
+            down = []
+            for team_id in team_ids:
+                if service_state[team_id][service_id]["service_state"] == "up":
+                    up.append(team_id)
+                else:
+                    down.append(team_id)
+            state[service_id] = {"up" : up, "down" : down}
+
+#        print(state)
+        for service_id, up_down_teams in state.items():
+
+           if len(up_down_teams["down"]) > 0 and len(up_down_teams["up"]) > 0:
+               avg_sla_point = math.floor(50/len(up_down_teams["up"]))
+               for team_id in up_down_teams["up"] :
+                   score_teams[team_id][service_id]["sla"] += avg_sla_point
+
+        attack_points = {}
+        defense_points = {}
+        sla_points   = {}
+        total_points = {}
+
+        for team_id in team_ids:
+            attack_points[str(team_id)] = 0
+            defense_points[str(team_id)] = 0
+            sla_points[str(team_id)] = 0
+            for service_id in service_ids:
+                attack_points[str(team_id)] += score_teams[team_id][service_id]["attack_points"]
+                defense_points[str(team_id)] += score_teams[team_id][service_id]["defense_points"]
+                sla_points[str(team_id)] += score_teams[team_id][service_id]["sla"]
+            total_points[str(team_id)] =  attack_points[str(team_id)] + defense_points[str(team_id)] + sla_points[str(team_id)]
+
+        target_url = self.__build_url(f"update/scores/tick/{tick_id}")
+        data = {"attack_points":json.dumps(attack_points),"defense_points":json.dumps(defense_points),"sla_points":json.dumps(sla_points),"total_points":json.dumps(total_points)}
+        update_response = DBApi._get_json_response(target_url, post_data=data)
+        print(update_response)

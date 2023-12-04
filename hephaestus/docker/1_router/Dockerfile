@@ -1,5 +1,6 @@
 FROM ictf_base
 
+RUN apt update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iptraf python3 python3-pip python3-dev build-essential awscli iptables-persistent iftop libcurl4-openssl-dev libssl-dev python3-apt zip unzip openvpn python3-setuptools python3-wheel
 RUN apt install -y openvpn tcpdump
 RUN chmod u+s $(which tcpdump)

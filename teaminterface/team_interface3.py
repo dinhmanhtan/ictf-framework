@@ -19,6 +19,9 @@ from lib.redis_ratelimit import ratelimit
 from lib.captcha import generate_captcha, set_captcha, get_captcha
 from lib.mailer import send_password_msg, send_verify_msg, send_reset_msg, send_ticket
 from config import config as conf
+import json
+import docker
+
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 api = Api(app)
@@ -26,6 +29,7 @@ app.config.update(conf)
 cache = Cache(config={'CACHE_TYPE': 'RedisCache'})
 cache.init_app(app)
 
+docker_client = docker.DockerClient(base_url='unix://var/run/docker.sock')
 
 @cache.cached(30, key_prefix='game_state')
 def is_game_running():
@@ -557,8 +561,58 @@ class Services(Resource):
         #if not app.config['game_started']:
         #    return jsonify({'message':'Game not started!'}), 400
         enabled_svcs = get_enabled_services()
+        result = []
+        for service in enabled_svcs:
+            service.pop('container_name')
+            service.pop('can_restart')
+            service.pop('service_id')
+            service.pop('team_id')
         return jsonify({'services': enabled_svcs})
 
+class ServiceRestart(Resource):
+
+    @auth.login_required
+    @cache.cached(120)
+    @check_game_started
+    def get(self):
+
+        enabled_svcs = get_enabled_services()
+        restart_services = []
+        services = enabled_svcs
+        for service in services:
+            if service["can_restart"] and service["container_name"]:
+                restart_services.append({"service_name" : service["service_name"], "port": service["port"]})
+
+        return jsonify({'services': restart_services})
+
+    @auth.login_required
+    @cache.cached(60)
+    @check_game_started
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('service_name', location='json',type=str, required=True, help='The container_name must not be empty')
+        args = parser.parse_args()
+        service_name = args.get("service_name")
+        enabled_svcs = get_enabled_services()
+
+        if not service_name in json.dumps(enabled_svcs):
+            return jsonify({'message': "Unknown service"})
+
+        team_id = g.user
+        services = enabled_svcs
+        for service in services:
+            if service["service_name"] == service_name:
+                if not service["can_restart"] or not service["container_name"]:
+                    return jsonify({"message" : "This service can't be restarted by server"})
+
+                try:
+                    docker_client.containers.get(f"{service['container_name']}_{team_id}-1").restart()
+                    return jsonify({"message" : "restarted successly"})
+                except Exception as e:
+                    print(e)
+                    return jsonify({"message" : "Something was wrong with the server"})
+
+        return jsonify({'message': 'Unknown service'})
 
 class Targets(Resource):
     @auth.login_required
@@ -763,6 +817,7 @@ api.add_resource(Token, '/api/login')
 api.add_resource(Team, '/api/team')
 api.add_resource(Reset, '/api/reset')
 api.add_resource(Service, '/api/service')
+api.add_resource(ServiceRestart, '/api/restart_service')
 api.add_resource(Metadata, '/api/metadata')
 api.add_resource(VPN, "/api/vpnconfig")
 api.add_resource(Vote, "/api/vote")
@@ -781,4 +836,4 @@ api.add_resource(VM, '/api/vm')
 
 
 if __name__ == '__main__':
-    app.run(debug=True,port=9090,host="0.0.0.0")
+    app.run(debug=True,port=80,host="0.0.0.0")

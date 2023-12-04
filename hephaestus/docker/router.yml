@@ -2,9 +2,9 @@ version: '3.4'
 
 services:
 
-    ictf_gamebot:
-        image: ictf_gamebot
-        hostname: gamebot
+    ictf_router:
+        image: ictf_router
+        hostname: router
         build:
-            dockerfile: ./hephaestus/docker/1_gamebot/Dockerfile
+            dockerfile: ./hephaestus/docker/1_router/Dockerfile
             context: ../../

@@ -58,6 +58,8 @@ create table services (id int not null auto_increment, primary key(id),
                        flag_id_description text not null,
                        team_id int not null, -- FIXME: associate service with author team, not needed anymore
                        upload_id int not null,
+                       can_restart boolean default 0,
+                       container_name text,
                        created_on timestamp not null default current_timestamp,
                        current_state enum('enabled', 'disabled') not null
                            default 'enabled',

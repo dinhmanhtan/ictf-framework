@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+import random
+from string import ascii_letters, digits
+import sys
+import json
+import traceback
+from nclib import Netcat
+
+ALPHA = ascii_letters + digits
+
+
+def generate_random_string(length: int) -> bytes():
+    return "".join(random.choice(ALPHA) for _ in range(length))
+
+
+def generate_user(l: int = 10):
+    username = generate_random_string(l)
+    password = generate_random_string(l)
+    return username, password
+
+
+def set_flag(ip, port, flag):
+    response = {
+        "error": False,
+        "payload": {},
+    }
+
+    r = Netcat((ip, port))
+    a = r.recvuntil(">")
+    r.send("1\n")
+    flag_id = generate_random_string(random.randint(8, 15))
+
+    a = r.recvuntil("backup:")
+    r.send(flag_id + "\n")
+    r.recvuntil("backup:")
+    token = generate_random_string(random.randint(8, 15))
+    r.send(token + "\n")
+    a = r.recvuntil(">")
+    r.send("1\n")
+
+    a = r.recvuntil("files ")
+    r.send(f"{str(len(flag))}\n")
+    a = r.recvuntil("file\n")
+    r.send(f"{flag}\n")
+
+    r.recvuntil(">")
+    r.send("3\n")
+
+    a = r.recvuntil(">")
+    r.send("4\n")
+    r.recvuntil(">")
+    r.send("2\n")
+    content = r.recvuntil(">").decode()
+    if flag != content.split("\n")[1]:
+        response["error"] = True
+        response[
+            "payload"
+        ] = "ERROR: The string received ({}) does not match the expected one ({})".format(
+            content.split("\n")[1], flag
+        )
+        return response
+    r.send("3\n")
+    r.recvuntil("\n")
+
+    response["payload"] = {
+        "flag_id": flag_id,  # Unique id for each flag
+        "secret_token": token,  # benign (get_flag) will know this, exploits will not
+    }
+
+    return response
+
+
+if __name__ == "__main__":
+    try:
+        print(json.dumps(set_flag(sys.argv[1], int(sys.argv[2]), sys.argv[3])))
+    except Exception as e:
+        response = {"error": True, "payload": str(e) + "\n" + traceback.format_exc()}
+        print(json.dumps(response))

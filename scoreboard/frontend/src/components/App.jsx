@@ -43,6 +43,9 @@ const App = (props) => {
           <Route key='route-redirect' exact strict path='/'>
             <Redirect to='/scores' />
           </Route>
+          <Route key='route-redirect-teams' exact strict path='/teams'>
+            <Redirect to='/teams' />
+          </Route>
           {
             views.map((view) => <NavLink 
                                   key={"link-" + view.path}

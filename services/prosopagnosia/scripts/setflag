@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+import random
+from string import ascii_letters, digits
+import sys
+import json
+import traceback
+import requests
+import base64
+import os
+
+NAME_HEADER = "X-Svm-Name"
+SECRET_HEADER = "X-Svm-Secret"
+AUTHOR_HEADER = "X-Svm-Author"
+KEY_HEADER = "X-Svm-Key"
+
+ALPHA = ascii_letters + digits
+
+
+def random_string(length: int):
+    return "".join(random.choice(ALPHA) for _ in range(length))
+
+
+def select_random_demo():
+    dir = os.path.dirname(os.path.realpath(__file__))
+    filename = random.choice(os.listdir(os.path.join(dir, "roms")))
+
+    with open(os.path.join(dir, "roms", filename), "rb") as f:
+        return f.read()
+
+
+def to_base64(s):
+    return base64.b64encode(s.encode()).decode()
+
+
+def set_flag(ip, port, flag):
+    response = {
+        "error": False,
+        "payload": {},
+    }
+    demo = select_random_demo()
+
+    len_name = [11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41]
+    name = random_string(random.choice(len_name))
+    author = random_string(random.randint(5, 15))
+    with requests.post(
+        f"http://{ip}:{port}/api/demo",
+        headers={
+            NAME_HEADER: to_base64(name),
+            SECRET_HEADER: to_base64(flag),
+            AUTHOR_HEADER: to_base64(author),
+        },
+        files={name: demo},
+    ) as r:
+        if r.status_code != 200:
+            response["error"] = True
+            response["payload"] = "ERROR: failure in post /api/demo"
+            return response
+
+        key = r.headers.get(KEY_HEADER)
+
+    with requests.get(
+        f"http://{ip}:{port}/api/demo",
+        headers={NAME_HEADER: to_base64(name), KEY_HEADER: key},
+    ) as r:
+        if r.status_code != 200:
+            response["error"] = True
+            response["payload"] = "ERROR: failure in get /api/demo"
+            return response
+        j = r.json()
+        if j["secret"] != to_base64(flag) or j["author"] != to_base64(author) or j["name"] != to_base64(name):
+            response["error"] = True
+            response["payload"] = "ERROR: content does not match"
+            return response
+
+    response["payload"] = {
+        "flag_id": name,  # Unique id for each flag
+        "secret_token": key,  # benign (get_flag) will know this, exploits will not
+    }
+
+    return response
+
+
+if __name__ == "__main__":
+    try:
+        print(json.dumps(set_flag(sys.argv[1], int(sys.argv[2]), sys.argv[3])))
+    except Exception as e:
+        response = {"error": True, "payload": str(e) + "\n" + traceback.format_exc()}
+        print(json.dumps(response))

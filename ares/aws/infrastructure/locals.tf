@@ -4,20 +4,29 @@ locals {
 
   services_scripts = jsondecode(file(var.game_config_file)).services
   
-  registry_id = length(aws_ecr_repository.service_scriptbot_image) == 0 ? "" : aws_ecr_repository.service_scriptbot_image[0].registry_id
+  #registry_id = length(aws_ecr_repository.service_scriptbot_image) == 0 ? "" : aws_ecr_repository.service_scriptbot_image[0].registry_id
+  registry_id = 503448012112
 
   # This variables are used to understand if we have prepopulate the registry or all the images needs to be
   # uploaded diring the infrastructure deployment.
   #
-  # Prepopulating the registry greatly reduce the deployment time of the whole infrastructure
-  database_registry_repository_url = var.database_registry_repository_url != "" ? var.database_registry_repository_url : aws_ecr_repository.ictf_database[0].repository_url
-  gamebot_registry_repository_url = var.gamebot_registry_repository_url != "" ? var.gamebot_registry_repository_url : aws_ecr_repository.ictf_gamebot[0].repository_url
-  scoreboard_registry_repository_url = var.scoreboard_registry_repository_url != "" ? var.scoreboard_registry_repository_url : aws_ecr_repository.ictf_scoreboard[0].repository_url
-  teaminterface_registry_repository_url = var.teaminterface_registry_repository_url != "" ? var.teaminterface_registry_repository_url : aws_ecr_repository.ictf_teaminterface[0].repository_url
-  scriptbot_registry_repository_url = var.scriptbot_registry_repository_url != "" ? var.scriptbot_registry_repository_url : aws_ecr_repository.ictf_scriptbot[0].repository_url
-  logger_registry_repository_url = var.logger_registry_repository_url != "" ? var.logger_registry_repository_url : aws_ecr_repository.ictf_logger[0].repository_url
-  router_registry_repository_url = var.router_registry_repository_url != "" ? var.router_registry_repository_url : aws_ecr_repository.ictf_router[0].repository_url
-  dispatcher_registry_repository_url = var.dispatcher_registry_repository_url != "" ? var.dispatcher_registry_repository_url : aws_ecr_repository.ictf_dispatcher[0].repository_url
+  # # Prepopulating the registry greatly reduce the deployment time of the whole infrastructure
+  # database_registry_repository_url = var.database_registry_repository_url != "" ? var.database_registry_repository_url : aws_ecr_repository.ictf_database[0].repository_url
+  database_registry_repository_url = var.database_registry_repository_url
+  # gamebot_registry_repository_url = var.gamebot_registry_repository_url != "" ? var.gamebot_registry_repository_url : aws_ecr_repository.ictf_gamebot[0].repository_url
+  gamebot_registry_repository_url = var.gamebot_registry_repository_url
+  # scoreboard_registry_repository_url = var.scoreboard_registry_repository_url != "" ? var.scoreboard_registry_repository_url : aws_ecr_repository.ictf_scoreboard[0].repository_url
+  scoreboard_registry_repository_url = var.scoreboard_registry_repository_url
+  # teaminterface_registry_repository_url = var.teaminterface_registry_repository_url != "" ? var.teaminterface_registry_repository_url : aws_ecr_repository.ictf_teaminterface[0].repository_url
+  teaminterface_registry_repository_url = var.teaminterface_registry_repository_url
+  # scriptbot_registry_repository_url = var.scriptbot_registry_repository_url != "" ? var.scriptbot_registry_repository_url : aws_ecr_repository.ictf_scriptbot[0].repository_url
+  scriptbot_registry_repository_url = var.scriptbot_registry_repository_url
+  # logger_registry_repository_url = var.logger_registry_repository_url != "" ? var.logger_registry_repository_url : aws_ecr_repository.ictf_logger[0].repository_url
+  logger_registry_repository_url = var.logger_registry_repository_url
+  #router_registry_repository_url = var.router_registry_repository_url != "" ? var.router_registry_repository_url : aws_ecr_repository.ictf_router[0].repository_url
+  router_registry_repository_url = var.router_registry_repository_url
+  # dispatcher_registry_repository_url = var.dispatcher_registry_repository_url != "" ? var.dispatcher_registry_repository_url : aws_ecr_repository.ictf_dispatcher[0].repository_url
+  dispatcher_registry_repository_url = var.dispatcher_registry_repository_url
 
   database_provision_with_ansible = <<EOF
   ansible-playbook ~/ares_provisioning_first_stage/ansible-provisioning.yml \

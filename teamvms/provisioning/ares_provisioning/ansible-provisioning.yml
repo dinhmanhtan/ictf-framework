@@ -44,8 +44,12 @@
     - name: restart openvpn
       command: systemctl restart openvpn
 
+    # - name: launch containers
+    #   shell: docker-compose up -d
+    #   args:
+    #     chdir: /opt/ictf/services
+    #   become_user: ctf
+
     - name: launch containers
-      shell: docker-compose up -d
-      args:
-        chdir: /opt/ictf/services
+      shell:  ./opt/ictf/services/start_docker.sh
       become_user: ctf

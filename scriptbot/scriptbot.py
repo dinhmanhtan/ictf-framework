@@ -45,9 +45,11 @@ class Scheduler(object):
         self.setflag_locks_list_lock = threading.Lock()
 
         # Logs
-        self.log = logging.getLogger('scriptbot.scheduler')
-        self.log.setLevel(settings.LOG_LEVEL)
-        self.log.addHandler(logstash.TCPLogstashHandler(LOGSTASH_IP, LOGSTASH_PORT, version=1))
+        #self.log = logging.getLogger('scriptbot.scheduler')
+        self.log = logging
+        self.log.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+        #self.log.setLevel(settings.LOG_LEVEL)
+        #self.log.addHandler(logstash.TCPLogstashHandler(LOGSTASH_IP, LOGSTASH_PORT, version=1))
         self.log.info('#' * 80)
         self.log.info("Initialization")
         self.log.info('#' * 80)

@@ -1,11 +1,11 @@
 {
   "variables": {
     "ICTF_USER": "ubuntu",
-    "IMAGE_NAME": "teamvm_base_18.04",
+    "IMAGE_NAME": "teamvm_base_22.04",
     "AWS_ACCESS_KEY": "{{env `AWS_ACCESS_KEY`}}",
     "AWS_SECRET_KEY": "{{env `AWS_SECRET_KEY`}}",
     "AWS_REGION": "{{ env `AWS_REGION` }}",
-    "AWS_EC2_INSTANCE_TYPE": "t3.micro"
+    "AWS_EC2_INSTANCE_TYPE": "t2.large"
   },
   "builders": [
     {
@@ -17,7 +17,7 @@
       "region": "{{user `AWS_REGION`}}",
       "source_ami_filter": {
         "filters": {
-          "name": "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
+          "name": "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
         },
         "owners": [
           "099720109477"
@@ -26,10 +26,11 @@
       },
       "ssh_username": "{{user `ICTF_USER`}}",
       "tags": {
-        "Description": "TeamVM Base - Ubuntu 18.04 AMI"
+        "Description": "TeamVM Base - Ubuntu 22.04 AMI"
       }
     }
   ],
+  
   "provisioners": [
     {
       "type": "ansible",

@@ -11,3 +11,4 @@ gen_pass 25 > secrets/database-api/mysql
 gen_pass 25 > secrets/database-api/salt
 gen_pass 25 > secrets/database-api/secret
 gen_pass 500 > secrets/teamvm_ova_key
+cp -r secrets ares/aws

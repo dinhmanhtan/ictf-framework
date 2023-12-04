@@ -5,7 +5,7 @@ import time
 import base64
 import json
 import textwrap
-import docker
+# import docker
 import boto3
 
 class ECRLoginTokenNotFoundException(Exception):
@@ -43,37 +43,37 @@ def populate_registry(aws_access_key, aws_secret_key, aws_region,
     # TODO: FIX THIS, FUCK THIS STUPID SHIT, WE CAN'T HAVE NICE THINGS WITH HTTPS OR HTTP IN THE BEGINNING
     registry_endpoint = ecr_cred['proxyEndpoint'].replace('https://', '').replace('http://', '')
 
-    print("[+] Logging into the registry {}.".format(registry_id))
+    # print("[+] Logging into the registry {}.".format(registry_id))
     # docker_client = docker.from_env()
-    docker_client = docker.from_env(timeout=1200)
-    docker_client.login(
-        username=registry_username,
-        password=registry_password,
-        registry=registry_endpoint,
-        reauth=True,
-    )
+    # docker_client = docker.from_env(timeout=1200)
+    # docker_client.login(
+    #     username=registry_username,
+    #     password=registry_password,
+    #     registry=registry_endpoint,
+    #     reauth=True,
+    # )
 
     dump_ecr_password(ECR_PASSWORD_FILE, registry_password)
 
-    print("[+] Tagging local image {} with tag {}".format(image_name, repository_url))
-    docker_image = docker_client.images.get(image_name)
-    docker_image.tag(repository_url)
-    print("[+] Pushing image {} to registry {}".format(repository_url, registry_id))
-    docker_client.images.push(repository_url)
-    # docker_client.images.push(repository_url, stream=True, decode=True)
-    # for status in docker_client.images.push(repository_url, stream=True, decode=True):
-    #     # print("[+]      Result: {}".format(status))
-    #     if 'error' in status and status['error'] == "toomanyrequests: Rate exceeded":
-    #         time.sleep(1)
-    #         continue
-    #     elif 'error' in status:
-    #         raise DockerPushException("Could not push image to remote: {}".format(json.dumps(status, indent=2)))
+    # print("[+] Tagging local image {} with tag {}".format(image_name, repository_url))
+    # docker_image = docker_client.images.get(image_name)
+    # docker_image.tag(repository_url)
+    # print("[+] Pushing image {} to registry {}".format(repository_url, registry_id))
+    # docker_client.images.push(repository_url)
+    # # docker_client.images.push(repository_url, stream=True, decode=True)
+    # # for status in docker_client.images.push(repository_url, stream=True, decode=True):
+    # #     # print("[+]      Result: {}".format(status))
+    # #     if 'error' in status and status['error'] == "toomanyrequests: Rate exceeded":
+    # #         time.sleep(1)
+    # #         continue
+    # #     elif 'error' in status:
+    # #         raise DockerPushException("Could not push image to remote: {}".format(json.dumps(status, indent=2)))
 
-    # else:
-    #     print("[+]      Result: {}".format(status))
-    # Housekeeping
-    print("[+] Removing local image {}".format(repository_url))
-    docker_client.images.remove(repository_url)
+    # # else:
+    # #     print("[+]      Result: {}".format(status))
+    # # Housekeeping
+    # print("[+] Removing local image {}".format(repository_url))
+    # docker_client.images.remove(repository_url)
 
 
 if __name__ == '__main__':

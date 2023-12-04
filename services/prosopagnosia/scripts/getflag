@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+import random
+from string import ascii_letters, digits
+import sys
+import json
+import traceback
+import requests
+import base64
+import os
+
+NAME_HEADER = "X-Svm-Name"
+SECRET_HEADER = "X-Svm-Secret"
+AUTHOR_HEADER = "X-Svm-Author"
+KEY_HEADER = "X-Svm-Key"
+
+ALPHA = ascii_letters + digits
+
+
+def random_string(length: int):
+    return "".join(random.choice(ALPHA) for _ in range(length))
+
+
+def select_random_demo():
+    dir = os.path.dirname(os.path.realpath(__file__))
+    filename = random.choice(os.listdir(os.path.join(dir, "roms")))
+
+    with open(os.path.join(dir, "roms", filename), "rb") as f:
+        return f.read()
+
+
+def to_base64(s):
+    return base64.b64encode(s.encode()).decode()
+
+
+def get_flag(ip, port, flag_id, token):
+    response = {
+        "error": False,
+        "payload": {},
+    }
+    name = to_base64(flag_id)
+    for _ in range(1, 6):
+    
+        with requests.get(
+            f"http://{ip}:{port}/api/demo",
+            headers={NAME_HEADER: name, KEY_HEADER: token},
+        ) as r:
+            if r.status_code != 200:
+                continue
+                # response["error"] = True
+                # response["payload"] = "ERROR: failure in get /api/demo"
+                # return response
+
+            j = r.json()
+            if j["name"] != name:
+                response["error"] = True
+                response["payload"] = "ERROR: content does not match"
+                return response
+            else:
+                flag = base64.b64decode(j["secret"]).decode()
+                response["payload"] = {"flag": flag}
+                return response
+                
+    if response["payload"] == {}:
+        response["error"] = True
+        response["payload"] = "ERROR: failure in get /api/demo"
+
+    return response
+
+
+if __name__ == "__main__":
+    try:
+        print(json.dumps(get_flag(sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4])))
+    except Exception as e:
+        response = {"error": True, "payload": str(e) + "\n" + traceback.format_exc()}
+        print(json.dumps(response))

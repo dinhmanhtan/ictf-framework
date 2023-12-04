@@ -8,10 +8,17 @@ resource "aws_vpc" "ictf" {
   cidr_block = var.vpc_cdir_block
   enable_dns_hostnames = true
   enable_dns_support = true
+
+  tags = {
+    Name = "vpc_ictf"
+  }
 }
 
 resource "aws_internet_gateway" "ictf" {
     vpc_id = aws_vpc.ictf.id
+  tags = {
+    Name = "internet_gateway_ictf"
+  }
 }
 
 resource "aws_route" "internet_access" {

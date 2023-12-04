@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+
+    museumorphosis_nginx:
+        image: museumorphosis_nginx
+        hostname: museumorphosis_nginx
+        build:
+            dockerfile: ./services/museumorphosis/src/nginx.Dockerfile
+            context: ../../

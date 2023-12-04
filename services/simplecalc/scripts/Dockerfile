@@ -4,9 +4,9 @@
 # ---- START AREA THAT CAN BE MODIFIED
 FROM ubuntu:18.04
 
-RUN apt-get update && apt-get install -y python python-pip 
-
-RUN pip install nclib pwntools
+RUN apt-get update && apt-get install python3 python3-pip python3-dev git libssl-dev libffi-dev build-essential -y
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install --upgrade pwntools nclib
 # ---- END AREA THAT CAN BE MODIFIED
 
 # The final 4 scripts/binaries (setflag, getflag, benign and exploit) need to be

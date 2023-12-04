@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+import sys
+import json
+import traceback
+import api
+import generators
+import compute
+import random
+
+
+def get_flag(ip, port, flag_id, token):
+    response = {
+        "error": False,
+        "payload": {},
+    }
+
+    username = flag_id
+    password, expected_uuid = token.split("_")
+    expected_uuid = int(expected_uuid)
+    cookies = api.make_login_request(ip, port, username, password)
+
+    field_uuids = api.make_list_fields_request(ip, port, cookies)
+    if not isinstance(field_uuids, list):
+        response["error"] = True
+        response["payload"] = f"invalid field_uuids: {type(field_uuids)}, {field_uuids}"
+        return response
+
+    for field_uuid in field_uuids:
+        if not isinstance(field_uuid, int):
+            response["error"] = True
+            response[
+                "payload"
+            ] = f"invalid field_uuid: {type(field_uuid)}, {field_uuid}"
+
+    if expected_uuid not in field_uuids:
+        response[
+            "payload"
+        ] = f"field uuids {field_uuids} does not contain expected uuid {expected_uuid}"
+        response["error"] = True
+        return response
+
+    real_field = api.make_get_field_request(ip, port, cookies, expected_uuid)
+    if (
+        not isinstance(real_field, dict)
+        or not set(real_field.keys()).issubset({"content", "owner", "type"})
+        or any(map(lambda x: not isinstance(x, str), real_field.values()))
+    ):
+        response["payload"] = f"invalid field: {real_field}"
+
+        response["error"] = True
+        return response
+
+    response["payload"] = {"flag": real_field["content"]}
+
+    return response
+
+
+if __name__ == "__main__":
+    try:
+        print(json.dumps(get_flag(sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4])))
+    except Exception as e:
+        response = {"error": True, "payload": str(e) + "\n" + traceback.format_exc()}
+        print(json.dumps(response))

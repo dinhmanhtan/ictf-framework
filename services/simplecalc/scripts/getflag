@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python3 
 
 import string
 import sys
@@ -45,7 +45,7 @@ def get_flag(ip, port, flag_id, token):
     r.recvuntil("result\n")
 
     r.send("R\n")
-    flag = r.recvuntil("\n").strip()
+    flag = r.recvuntil("\n").strip().decode()
 
     if "No such file or directory" in flag:
         response['error'] = True
@@ -59,10 +59,10 @@ def get_flag(ip, port, flag_id, token):
 
 if __name__ == "__main__":
     try:
-        print json.dumps(get_flag(sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]))
+        print(json.dumps(get_flag(sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4])))
     except Exception as e:
         response = {
             "error": True,
             "payload": str(e) + "\n" + traceback.format_exc()
         }
-        print json.dumps(response)
+        print(json.dumps(response))

@@ -17,10 +17,31 @@
 
 ########################          Setup the MOTD now        ###############################
 # Messages for the user #TODO: fix for current version of iCTF, root, self-host, services as docker
-- name: motd
-  template:
-    src: motd.j2
-    dest: /etc/motd
+# - name: motd  
+#   become: yes
+#   template:
+#     src: motd.j2
+#     dest: /etc/motd
+
+
+# - name: setup ctf user
+#   user:
+#     name: ctf
+#     uid: 31337
+#     create_home: yes
+#     shell: /bin/bash
+#     state: "present"
+
+# - name: Copy the authorized key file from
+#   authorized_key:
+#     user: "ctf"
+#     state: "present"
+#     key: "{{ lookup('file', '~/.ssh/id_rsa.pub')}}"
+
+# - name: check ctf user info
+#   getent:
+#     database: passwd
+#     key: ctf
 
 ########################    CREATE SERVICE BASE DIRECTORY   ###############################
 - name: create service directory
@@ -43,27 +64,38 @@
     DEPLOY_LOCAL: "{{ PRIMER_LOCAL }}"
   with_items: "{{ PRIMER_SERVICES }}"
 
-- name: Generate docker-compose.yml
-  template:
-    src: docker-compose.yml.j2
-    dest: "{{ PRIMER_GUEST_SERVICES_PATH }}/docker-compose.yml"
+# - name: Generate docker-compose.yml
+#   template:
+#     src: docker-compose.yml.j2
+#     dest: "{{ PRIMER_GUEST_SERVICES_PATH }}/docker-compose.yml"
+#     owner: "ctf"
+#     group: "ctf"
 
-- name: build service docker files in parallel
-  shell: "docker compose build --parallel"
-  args:
-    chdir: "{{ PRIMER_GUEST_SERVICES_PATH }}"
-  when: PRIMER_LOCAL == false
+#- name: build service docker files in parallel
+#  shell: "docker compose build --parallel"
+#  args:
+#    chdir: "{{ PRIMER_GUEST_SERVICES_PATH }}"
+#  when: PRIMER_LOCAL == false
 
 ########################    SETUP bindfs for append-only    ###############################
-- name: setup bindfs for the append only dir
-  lineinfile:
-    path: /etc/fstab
-    line: "{{ PRIMER_GUEST_SERVICES_PATH }}/{{item}}/append {{ PRIMER_GUEST_SERVICES_PATH }}/{{item}}/append fuse.bindfs force-user=root,perms=u=rwD:g=r:dg=rwx:o=D"
-  with_items: "{{ PRIMER_SERVICES }}"
-  when: PRIMER_LOCAL == false
+# - name: setup bindfs for the append only dir
+#   become: yes
+#   lineinfile:
+#     path: /etc/fstab
+#     line: "{{ PRIMER_GUEST_SERVICES_PATH }}/{{item}}/append {{ PRIMER_GUEST_SERVICES_PATH }}/{{item}}/append fuse.bindfs force-user=root,perms=u=rwD:g=r:dg=rwx:o=D"
+#   with_items: "{{ PRIMER_SERVICES }}"
+#   when: PRIMER_LOCAL == false
 
 ########################            CLEAN UP YO SHIT        ###############################
-- name: prune docker cache
-  shell: docker system prune --volumes -f
-  when: PRIMER_LOCAL == false
+#- name: prune docker cache
+#  shell: docker system prune --volumes -f
+#  when: PRIMER_LOCAL == false
+
+- name: copy start docker-compose file
+  copy:
+    src: start_docker.sh
+    dest: /opt/ictf/services
+    owner: ctf
+    group: ctf
+    mode: 0755
 

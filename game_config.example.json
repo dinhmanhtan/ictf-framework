@@ -8,7 +8,6 @@
       "state": "enabled",
       "name": "<NAME_SERVICE_1>"
     }
-    ...
   ],
   "service_metadata": {
     "host_dir": "<PATH_TO_YOUR_SERVICE_DIRECTORY>",
@@ -43,6 +42,5 @@
       "flag_token": "<TEAM_2_TOKE_20_RANDOM_CHARS>",
       "organizer_hosted": true
     }
-    ...
   ]
 }

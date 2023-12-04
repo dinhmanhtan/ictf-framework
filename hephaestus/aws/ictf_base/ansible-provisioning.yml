@@ -20,7 +20,7 @@
   
     - name: install docker-compose
       get_url:
-        url: https://github.com/docker/compose/releases/download/1.25.4/docker-compose-Linux-x86_64
+        url: https://github.com/docker/compose/releases/download/v2.17.3/docker-compose-Linux-x86_64
         dest: /usr/local/bin/docker-compose
         mode: 0755
 
@@ -43,11 +43,13 @@
       file:
         path: "~/ares_provisioning_first_stage"
         state: directory
-      become: "{{ ICTF_USER }}"
+      become: true
+      become_user: "{{ ICTF_USER }}"
 
       # This folder will be filled by TERRAFORM with the file provisioner
     - name: create second stage ares provisioning directory
       file:
         path: "~/ares_provisioning_second_stage"
         state: directory
-      become: "{{ ICTF_USER }}"
+      become: true
+      become_user: "{{ ICTF_USER }}"

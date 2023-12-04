@@ -37,6 +37,8 @@ def services_get(team_id=None):
                          "team_id": int,
                          "upload_id": int,
                          "state": ("enabled", "disabled")
+                         "can_restart": (1,0),
+                         "container_name": str
                          }
         }
 
@@ -48,7 +50,7 @@ def services_get(team_id=None):
 
     base_query = """SELECT id as service_id, name as service_name, authors,
                          port, flag_id_description, description, team_id,
-                         upload_id, current_state as state
+                         upload_id, current_state as state, can_restart, container_name
                       FROM services"""
 
     # Dynamically create the WHERE statement
@@ -186,6 +188,8 @@ def service_new():
     authors = request.form.get("authors", None)
     flag_id_description = request.form.get("flag_id_description")
     state = request.form.get("state", "enabled")
+    can_restart = request.form.get("can_restart", 0)
+    container_name = request.form.get("container_name", None)
 
     if state not in ("enabled", "disabled"):
         abort(400)
@@ -200,10 +204,10 @@ def service_new():
     team_id = result["team_id"]
 
     cursor.execute("""INSERT INTO services (name, upload_id, description, authors,
-                                           flag_id_description, team_id, current_state)
-                      VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                                           flag_id_description, team_id, current_state,can_restart,container_name)
+                      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                    (name, upload_id, description, authors, flag_id_description,
-                    team_id, state))
+                    team_id, state,can_restart,container_name))
     service_id = cursor.lastrowid
 
     # set the state in the log

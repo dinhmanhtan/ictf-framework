@@ -4,8 +4,8 @@ services:
 
     ictf_scoreboard:
         image: ictf_scoreboard
-        sysctls:
-            - net.core.somaxconn=65535
+        # sysctls:
+        #     - net.core.somaxconn=65535
         ports:
             - "80:80"
             - "9100:9100"

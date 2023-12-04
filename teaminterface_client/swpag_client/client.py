@@ -1,12 +1,12 @@
 """
-Written by subwire and the iCTF team, 2019
+
 # The TeamInterface game client
 
 This client lets you interact with the game, including
 getting the game status, obtaining a list of potential targets, and 
 submitting flags.
 
-To get started, you will have received a "flag token" with your game registration.
+To get started, you will have received a "secret token" with your game registration.
 You may also need to know the URL of your game's "team interface".
 Note that for some games (e.g., iCTF) this will be automatically discovered for you.
 You will also need access to your team's virtual machine, on which you should run the client.
@@ -17,7 +17,7 @@ and the submission of flags.
 You can now do the following:
 
 >>> from teaminterface_client import Team
->>> t = Team("http://your.team.interface.hostname/", "your_flag_token_here")
+>>> t = Team("http://teaminterface.myctf.world/", "your_secret_token_here")
 
 With this team object, you can then get the info to login to your machine:
 
@@ -27,8 +27,7 @@ Get game status information:
 
 >>> t.get_game_status()
 
-This includes information on scores, teams, services, and timing information regarding the game's "ticks".
-
+This includes information on scores, teams, services, and timing information regarding the game's "ticks".ta
 Your first task will be to explore the game services which you must attack and defend, and find exploits
 You will see them on your VM's filesystem, but to get a list of services with descriptions, you can run
 >>> t.get_service_list()
@@ -52,10 +51,6 @@ This will return a list of the teams' IP addresses, port numbers, and flag IDs.
 Finally, you need to capture and submit some flags!
 Once you've pwned the service, and captured the flag, all you need to do is:
 
->>> t.submit_flag("FLGxxxxxxxxxxxxx")
-
-You can also submit a lot of flags at once:
-
 >>> t.submit_flag(["FLGxxxxxxxxxxxxx", "FLGyyyyyyyyyyyyy", ...])
 
 You'll get a status code (or a list of status codes) in return.
@@ -64,7 +59,7 @@ The client can provide a wealth of information on the game, which is discussed i
 
 Happy hacking!
 
-- the iCTF team
+- the CTF team
 
 """
 from builtins import input
@@ -74,13 +69,16 @@ import base64
 import random
 from functools import wraps
 
+
 def flag_token(func):
     @wraps(func)
     def decor(self, *args, **kwargs):
         if not self._flag_token:
             raise RuntimeError("You need a flag token for this")
         return func(self, *args, **kwargs)
+
     return decor
+
 
 class Team(object):
     """
@@ -91,15 +89,20 @@ class Team(object):
     def __init__(self, game_url, flag_token=None):
         self._flag_token = flag_token
         self._login_token = None
-        self.game_url = game_url if game_url[-1] == '/' else game_url + '/'
+        self.game_url = game_url if game_url[-1] == "/" else game_url + "/"
 
     def __str__(self):
         return "<Team %s>" % self._token
 
     def _post_json(self, endpoint, j, token):
         # EDG says: Why can't Ubuntu stock a recent version of Requests??? Ugh.
-        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        resp = requests.post(self.game_url + endpoint, auth=(token, ""), data=json.dumps(j), headers=headers)
+        headers = {"Content-type": "application/json", "Accept": "text/plain"}
+        resp = requests.post(
+            self.game_url + endpoint,
+            auth=(token, ""),
+            data=json.dumps(j),
+            headers=headers,
+        )
         try:
             js = resp.json()
             return js, resp.status_code
@@ -107,7 +110,7 @@ class Team(object):
             return e, resp.status_code
 
     def _get_json(self, endpoint, token):
-        assert (token is not None)
+        assert token is not None
         resp = requests.get(self.game_url + endpoint, auth=(token, ""))
         try:
             js = resp.json()
@@ -119,9 +122,9 @@ class Team(object):
         r = requests.get(self.game_url + endpoint, auth=(self.token, ""), stream=True)
         if r.status_code != 200:
             raise RuntimeError("Error downloading file!")
-        with open(save_to, 'wb') as f:
+        with open(save_to, "wb") as f:
             for chunk in r.iter_content(chunk_size=1024):
-                if chunk: # filter out keep-alive new chunks
+                if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)
 
     def get_team_list(self):
@@ -131,10 +134,10 @@ class Team(object):
         token = self._flag_token if self._flag_token else self._login_token
         resp, code = self._get_json("api/teams", token)
         if code == 200:
-            return resp['teams']
+            return resp["teams"]
         else:
-            if isinstance(resp,dict):
-                raise RuntimeError(resp['message'])
+            if isinstance(resp, dict):
+                raise RuntimeError(resp["message"])
             else:
                 raise RuntimeError("An unknown error occurred getting the team list")
 
@@ -147,10 +150,12 @@ class Team(object):
         if code == 200:
             return resp
         else:
-            if isinstance(resp,dict):
-                raise RuntimeError(resp['message'])
+            if isinstance(resp, dict):
+                raise RuntimeError(resp["message"])
             else:
-                raise RuntimeError("An unknown error occurred getting the VM information for the team")
+                raise RuntimeError(
+                    "An unknown error occurred getting the VM information for the team"
+                )
 
     def get_tick_info(self):
         """
@@ -172,8 +177,8 @@ class Team(object):
         if code == 200:
             return resp
         else:
-            if isinstance(resp,dict):
-                raise RuntimeError(resp['message'])
+            if isinstance(resp, dict):
+                raise RuntimeError(resp["message"])
             else:
                 raise RuntimeError("An unknown error occurred getting the tick info.")
 
@@ -184,21 +189,21 @@ class Team(object):
         note: Requires a flag token
         :param flags: A list of flags
         :return: List containing a response for each flag, either:
-        	"correct" | "ownflag" (do you think this is defcon?)
+                "correct" | "ownflag" (do you think this is defcon?)
                       | "incorrect"
                       | "alreadysubmitted"
                       | "notactive",
                       | "toomanyincorrect",
 
         """
-        if not isinstance(flags,list):
+        if not isinstance(flags, list):
             raise TypeError("Flags should be in a list!")
-        resp, code = self._post_json("api/flag", {'flags': flags}, self._flag_token)
+        resp, code = self._post_json("api/flag", {"flags": flags}, self._flag_token)
         if code == 200:
             return resp
         else:
-            if isinstance(resp,dict):
-                raise RuntimeError(resp['message'])
+            if isinstance(resp, dict):
+                raise RuntimeError(resp["message"])
             else:
                 raise RuntimeError("An unknown error occurred submitting flags.")
 
@@ -223,20 +228,20 @@ class Team(object):
         """
         token = self._flag_token if self._flag_token else self._login_token
         service_id = None
-        if isinstance(service,str):
+        if isinstance(service, str):
             services = self.get_service_list()
-            svc = filter(lambda x: x['service_name'] == service, services)
+            svc = list(filter(lambda x: x["service_name"] == service, services))
             if not svc:
                 raise RuntimeError("Unknown service " + service)
-            service_id = int(svc[0]['service_id'])
+            service_id = int(svc[0]["service_id"])
         else:
             service_id = service
         resp, code = self._get_json("api/targets/" + str(service_id), token)
         if code == 200:
-            return resp['targets']
+            return resp["targets"]
         else:
-            if isinstance(resp,dict):
-                raise RuntimeError(resp['message'])
+            if isinstance(resp, dict):
+                raise RuntimeError(resp["message"])
             else:
                 raise RuntimeError("Something went wrong getting targets.")
 
@@ -260,10 +265,10 @@ class Team(object):
         token = self._flag_token if self._flag_token else self._login_token
         resp, code = self._get_json("api/services", token)
         if code == 200:
-            return resp['services']
+            return resp["services"]
         else:
-            if isinstance(resp,dict):
-                raise RuntimeError(resp['message'])
+            if isinstance(resp, dict):
+                raise RuntimeError(resp["message"])
             else:
                 raise RuntimeError(repr(resp))
 
@@ -356,10 +361,12 @@ class Team(object):
         if code == 200:
             return resp
         else:
-            if isinstance(resp,dict) and 'message' in resp:
-                raise RuntimeError(resp['message'])
+            if isinstance(resp, dict) and "message" in resp:
+                raise RuntimeError(resp["message"])
             else:
-                raise RuntimeError("An unknown error occurred contacting the game status! Perhaps try again?")
+                raise RuntimeError(
+                    "An unknown error occurred contacting the game status! Perhaps try again?"
+                )
 
     def get_team_status(self):
         """

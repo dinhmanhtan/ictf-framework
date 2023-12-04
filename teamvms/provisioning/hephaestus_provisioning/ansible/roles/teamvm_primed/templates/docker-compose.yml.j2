@@ -16,6 +16,6 @@ services:
           source: ./{{ SERVICE }}/append
           target: /home/chall/service/append
         ports:
-        - "{{ 10000 + loop.index }}:6666"
+        - "{{ 20000 + loop.index }}:6666"
         restart: always
 {% endfor %}

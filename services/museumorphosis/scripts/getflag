@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+import random
+import sys
+import json
+import traceback
+import requests
+
+
+def getflag(ip, port, flag_id, secret):
+    response = {
+        "error": False,
+        "payload": {},
+    }
+    api_url = f"http://{ip}:{port}/api"
+
+    # also can extract all someone else exhibits
+    exihibit_id = flag_id[:36]
+    museum_id = flag_id[36:]
+
+    token = None
+    for _ in range(3):
+        resp = requests.post(
+            f"{api_url}/login",
+            json={"id": museum_id, "password": secret},
+        )
+        if resp.status_code == 200:
+            token = resp.json().get("token")
+        if token:
+            break
+    if not token:
+        response["error"] = True
+        response["payload"] = f"ERROR: Fail to login"
+        return response
+
+    errors = []
+    for _ in range(3):
+        resp = requests.get(f"{api_url}/museum/exhibits", headers={"token": token})
+
+        if resp.status_code != 200:
+           errors.append(f"ERROR: {resp.text}")
+           continue
+
+        exhibits = resp.json()["exhibits"]
+
+        check = False
+        flag = None
+        for exhibit in exhibits:
+            if exhibit["id"] == exihibit_id:
+                check = True
+                flag = exhibit["metadata"]
+                break
+
+        if not check:
+            response["error"] = True
+            response["payload"] = f"ERROR: flag is not exsited"
+
+        else:
+            response['payload'] = {'flag': flag}
+
+        return response
+    
+    if response['payload'] == {}:
+        response["error"] = True
+        response["payload"] = errors
+
+    return response
+
+
+if __name__ == "__main__":
+    try:
+        print(
+            json.dumps(getflag(sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]))
+        )
+    except Exception as e:
+        response = {"error": True, "payload": str(e) + "\n" + traceback.format_exc()}
+        print(json.dumps(response))

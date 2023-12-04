@@ -107,9 +107,9 @@ const Scores = (props) => {
 
   function tableRows() {
     return lastScoresSorted.filter(score => {
-      return gamestate.static.teams.find(t => t.id === score.team_id);
+      return Object.values(gamestate.static.teams).find(t => t.id === score.team_id);
     }).map((s, i) => {
-      let team = gamestate.static.teams.find(t => t.id === s.team_id);
+      let team = Object.values(gamestate.static.teams.find)(t => t.id === s.team_id);
       let teamNameTag = <span><Flag country={ team.country } size="16"/> { team.name }</span>;
       return {
         team_rank: i + 1,

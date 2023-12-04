@@ -20,7 +20,7 @@ def require_unique(s, key):
 def lint(contents, schema):
     jsonschema.validate(contents, schema)
 
-    if contents['game_info']['num_routers'] != 20:
+    if contents['game_info']['num_routers'] != 1:
         fail_check("20 router instances is hardcoded, instead you have {}".format(contents['game_info']['num_routers']))
     teams = contents['teams']
 

@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+import sys
+import json
+import traceback
+import api
+import generators
+
+
+def set_flag(ip, port, flag):
+    response = {
+        "error": False,
+        "payload": {},
+    }
+
+    username = generators.gen_username()
+    password = generators.gen_password()
+
+    cookies = api.make_register_request(ip, port, username, password)
+
+    field = generators.gen_palindrome_field(flag)
+    uuid = api.make_create_field_request(ip, port, cookies, field)
+    if not isinstance(uuid, (str, int)):
+        response["error"] = True
+        response["payload"] = f"invalid field uuid: {type(uuid)}, {uuid}"
+
+        return response
+
+    response["payload"] = {"flag_id": username, "secret_token": f"{password}_{uuid}"}
+
+    return response
+
+
+if __name__ == "__main__":
+    try:
+        print(json.dumps(set_flag(sys.argv[1], int(sys.argv[2]), sys.argv[3])))
+    except Exception as e:
+        response = {"error": True, "payload": str(e) + "\n" + traceback.format_exc()}
+        print(json.dumps(response))

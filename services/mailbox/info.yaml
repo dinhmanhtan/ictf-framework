@@ -1,0 +1,8 @@
+service_name: mailbox
+type: crypto
+description: mailbox
+flag_id_description: Flags are identified by the name of the dialogue. Flagid is id of the dialogue, flagid provided from api need to be convert to bytes, flag_id = bytes.fromhex(flag_id) 
+apt_dependencies: 
+    - sl
+authors:
+    - whoknow

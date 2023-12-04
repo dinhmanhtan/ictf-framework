@@ -181,7 +181,7 @@ def submit_flag(team_id, flag, attack_up, max_incorrect_flags_per_tick, num_tick
         # In attack-up mode, put an extra check
         if attack_up and \
                 to_return.get('result', None) == 'correct':
-            from scores import _scores_get
+            from .scores import _scores_get
             top_n_teams = _scores_get(top_n=attackup_head_bucket_size)
             if int(team_id) in top_n_teams:
                 if int(submitted_team_id) not in top_n_teams:

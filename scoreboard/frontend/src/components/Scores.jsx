@@ -142,10 +142,11 @@ class Scores extends Component {
   }
 
   tableRows() {
+    
     return this.state.lastScoresSorted.filter(score => {
-      return this.props.teams.find(t => t.id === score.team_id);
+      return Object.values(this.props.teams).find(t => t.id === score.team_id);
     }).map((s, i) => {
-      let team = this.props.teams.find(t => t.id === s.team_id);
+      let team = Object.values(this.props.teams).find(t => t.id === s.team_id);
       let teamNameTag = <span><Flag country={ team.country } size="16"/> { team.name }</span>;
       return {
         team_rank: i + 1,
@@ -161,7 +162,7 @@ class Scores extends Component {
     return (
       <div>
         <h3 className="title">Scoreboard</h3>
-        <div className="chart" ref={this.chart_ref}/>
+      {/*  <div className="chart" ref={this.chart_ref}/>  */}
         <nav className="chart-controls">
           {/* <a href="#" onClick={ this.handleChartToggle.bind(this, 'all') }>Show all</a>
               <span> - </span>

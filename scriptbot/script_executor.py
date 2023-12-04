@@ -65,9 +65,12 @@ class ScriptThread(threading.Thread):
         self.max_output_send_bytes = settings.MAX_SCRIPT_OUTPUT_BYTES
 
         # Set logger
-        self.log = logging.getLogger('scriptbot.script_exec')
-        self.log.setLevel(settings.LOG_LEVEL)
-        self.log.addHandler(logstash.TCPLogstashHandler(LOGSTASH_IP, LOGSTASH_PORT, version=1))
+        #self.log = logging.getLogger('scriptbot.script_exec')
+        #self.log.setLevel(settings.LOG_LEVEL)
+        #self.log.addHandler(logstash.TCPLogstashHandler(LOGSTASH_IP, LOGSTASH_PORT, version=1))
+        self.log = logging
+        self.log.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+        #self.log.setLevel(settings.LOG_LEVEL)
         self.log.info('ScriptThread Init')
 
 
@@ -255,7 +258,7 @@ class ScriptThread(threading.Thread):
         # The networking changes if we are running locally vs remotely
         if settings.IS_LOCAL_REGISTRY:
             # Use the DNS service provided by docker-compose
-            arg_prefix += ['--network=container:docker_scriptbot{}_1'.format(settings.BOT_ID)]
+            arg_prefix += ['--network=container:docker-scriptbot{}.ictf-1'.format(settings.BOT_ID)]
         else:
             # Use the VPN when we run remotely
             arg_prefix += ['--network', 'host']

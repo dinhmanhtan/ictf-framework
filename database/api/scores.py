@@ -20,10 +20,10 @@ def scores_ping():
 def _scores_get(tick_id=None, base_team_id=None, top_n=None):
 
     if base_team_id is not None and \
-            not isinstance(base_team_id, (long, int)):
+            not isinstance(base_team_id, int):
         raise TypeError("'base_team_id' can only be None or an int.")
     if top_n is not None and \
-            not isinstance(top_n, (long, int)):
+            not isinstance(top_n, int):
         raise TypeError("'top_n' can only be None or an int.")
     if base_team_id is not None and top_n is not None:
         raise ValueError("'base_team_id' and 'top_n' cannot be specified together.")
@@ -439,22 +439,28 @@ def update_team_scores(tick_id):
              successful.
     """
 
-    team_sla_points = request.form.get("sla_points")
-    team_attack_points = request.form.get("attack_points")
-    team_defense_points = request.form.get("defense_points")
-    team_total_points = request.form.get("total_points")
-    all_teams = teams_info()
+    team_sla_points = json.loads(request.form.get("sla_points"))
+    team_attack_points = json.loads(request.form.get("attack_points"))
+    team_defense_points = json.loads(request.form.get("defense_points"))
+    team_total_points = json.loads(request.form.get("total_points"))
+    #all_teams = teams_info()
     cursor = mysql.cursor()
     # Iterate for each team.
-    for curr_team_id in all_teams:
-        sla_points = team_sla_points[curr_team_id]
-        attack_points = team_attack_points[curr_team_id]
-        defense_points = team_defense_points[curr_team_id]
-        total_points = team_total_points[curr_team_id]
+    cursor.execute("""SELECT teams.id FROM teams""")
+    all_teams = cursor.fetchall()
+    print(team_sla_points,team_attack_points,team_defense_points,team_total_points)
+    print([row["id"] for row in all_teams])
+    for row in all_teams:
+        id = str(row["id"])
+        sla_points = team_sla_points[id]
+        attack_points = team_attack_points[id]
+        defense_points = team_defense_points[id]
+        total_points = team_total_points[id]
+        print(sla_points,attack_points,defense_points,total_points)
         cursor.execute("""INSERT INTO tick_scores
                                      (tick_id, team_id, sla_points,
                                       attack_points, defense_points, total_points)
-                          VALUES (%s, %s, %s, %s, %s, %s)""", (tick_id, curr_team_id, sla_points,
+                          VALUES (%s, %s, %s, %s, %s, %s)""", (tick_id, int(id), sla_points,
                                                                attack_points, defense_points, total_points,))
 
     mysql.database.commit()

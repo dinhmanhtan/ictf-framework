@@ -3,7 +3,7 @@ data "aws_ami" "ictf_base" {
 
   filter {
     name   = "name"
-    values = ["ictf_base_18.04"]
+    values = ["ictf_base_20.04"]
   }
 
   owners = ["self"]

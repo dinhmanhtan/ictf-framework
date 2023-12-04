@@ -1,7 +1,7 @@
 setuptools
 setuptools-rust
-cryptography
-pyOpenSSL
+#cryptography
+#pyOpenSSL
 wheel
 Flask
 Flask-Cache
@@ -20,7 +20,7 @@ requests
 saferedisqueue
 six
 setuptools
-ndg-httpsclient
+#ndg-httpsclient
 pyasn1
 ujson
 python-logstash

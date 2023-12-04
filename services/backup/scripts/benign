@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+import random
+from string import ascii_letters, digits
+import sys
+import json
+import traceback
+from nclib import Netcat
+
+ALPHA = ascii_letters + digits
+
+
+def generate_random_string(length: int) -> bytes():
+    return "".join(random.choice(ALPHA) for _ in range(length))
+
+
+def generate_user(l: int = 10):
+    username = generate_random_string(l)
+    password = generate_random_string(l)
+    return username, password
+
+
+def benign(ip, port):
+    response = {
+        "error": False,
+        "payload": {},
+    }
+
+    nums = random.randint(2, 5)
+
+    for _ in range(nums):
+        r = Netcat((ip, port))
+        a = r.recvuntil(">")
+        r.send("1\n")
+        flag_id = generate_random_string(random.randint(8, 15))
+
+        a = r.recvuntil("backup:")
+        r.send(flag_id + "\n")
+        r.recvuntil("backup:")
+        token = generate_random_string(random.randint(8, 15))
+        r.send(token + "\n")
+        a = r.recvuntil(">")
+        r.send("1\n")
+
+        a = r.recvuntil("files ")
+        backup_data = generate_random_string(random.randint(8,18))
+        r.send(f"{str(len(backup_data))}\n")
+        a = r.recvuntil("file\n")
+        r.send(f"{backup_data}\n")
+
+        r.recvuntil(">")
+        r.send("3\n")
+
+        a = r.recvuntil(">")
+        r.send("4\n")
+        r.recvuntil(">")
+        r.send("2\n")
+        content = r.recvuntil(">").decode()
+        if backup_data != content.split("\n")[1]:
+            response["error"] = True
+            response[
+                "payload"
+            ] = "ERROR: The string received ({}) does not match the expected one ({})".format(
+                content.split("\n")[1], backup_data
+            )
+            return response
+        r.send("3\n")
+        r.recvuntil("\n")
+
+        r.close()
+
+    return response
+
+
+if __name__ == "__main__":
+    try:
+        print(json.dumps(benign(sys.argv[1], int(sys.argv[2]))))
+    except Exception as e:
+        response = {"error": True, "payload": str(e) + "\n" + traceback.format_exc()}
+        print(json.dumps(response))

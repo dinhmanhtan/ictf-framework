@@ -1,0 +1,6 @@
+service_name: backup
+type: console
+description: Password-protected backup file, only you can see your results!
+flag_id_description: Flags are identified by the content inside the backup file. Flagid is the name. 
+authors:
+    - iam
