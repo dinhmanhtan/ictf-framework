@@ -30,6 +30,7 @@ def _init_database():
     # Create the game
     game_id = random.randint(0, 1000000)
     cursor.execute("INSERT INTO game (id) VALUES (%s)", (game_id,))
+    cursor.execute("DELETE FROM game")
 
     database.commit()
 

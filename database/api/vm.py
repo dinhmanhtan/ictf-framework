@@ -36,14 +36,14 @@ def vm_get(vm_name):
         print(e)
         return json.dumps({"result": "failure", "reason": str(e)})
 
-    return json.dumps(to_return)
+    return json.dumps({"ok":True,"data":to_return})
 
 
 @app.route("/vm/get_all")
 @requires_auth
 def vm_get_all():
-    page = request.args.get("page", None)
-    size = request.args.get("size", None)
+    page = request.args.get("page",None)
+    size = request.args.get("size",None)
 
     if not page or not page.isdigit() or int(page) < 1:
         page = 1
@@ -52,19 +52,21 @@ def vm_get_all():
 
     page = int(page)
     size = int(size)
-    offset = (page - 1) * size
+    offset = (page-1)*size
 
     try:
         cursor = mysql.cursor()
 
         cursor.execute(
-            "SELECT vm_name,root_key, ip,instance_type, volume_size, private_ip FROM vm OFFSET %s LIMIT %s",
-            (offset, size),
+            "SELECT vm_name,root_key, ip,instance_type, volume_size, private_ip FROM vm LIMIT %s OFFSET %s",
+            (size,offset)
         )
 
-        key_cursor = cursor.fetchall()
+        data = cursor.fetchall()
+        cursor.execute("SELECT COUNT(vm_name) as count FROM vm")
+        count = cursor.fetchone()["count"]
 
-        return json.dumps(key_cursor)
+        return json.dumps({"success":True,"count":count,"data":data})
 
     except Exception as e:
         print(e)
@@ -98,7 +100,7 @@ def vm_add_config():
         cursor.execute("""SELECT vm_name from vm WHERE vm_name = %s""", (vm_name,))
 
         if cursor.fetchone():
-            return json.dumps({"result": "fail", "reason": "vm has already existed"})
+            return json.dumps({"result": "success", "msg": "vm has already existed"})
 
         root_key = request.form.get("root_key", None)
         ip = request.form.get("ip", None)
@@ -149,10 +151,11 @@ def vm_update_config():
             return json.dumps({"result": "fail", "reason": "vm_name can't be null"})
 
         cursor = mysql.cursor()
-        cursor.execute("""SELECT vm_name from vm WHERE vm_name = %s""", (vm_name,))
+        cursor.execute("""SELECT id,vm_name from vm WHERE vm_name = %s""", (vm_name,))
 
         if not cursor.fetchone():
             return json.dumps({"result": "fail", "reason": "vm doesn't exsited"})
+
 
         root_key = request.form.get("root_key", None)
         ip = request.form.get("ip", None)
@@ -173,10 +176,54 @@ def vm_update_config():
         )
         mysql.database.commit()
 
-        return json.dumps({"result": "success", "vm_name": vm_name})
+        return json.dumps({"result": "success"})
     except Exception as e:
         print(e)
         return json.dumps({"result": "failure", "reason": str(e)})
+
+@app.route("/vm/delete/<string:vm_name>", methods=["DELETE"])
+@requires_auth
+def vm_delete(vm_name):
+    to_return = {}
+
+    try :
+        cursor = mysql.cursor()
+
+        cursor.execute("SELECT id,vm_name FROM vm WHERE vm_name = %s ", (vm_name,))
+
+        key_cursor = cursor.fetchone()
+        if key_cursor is None:
+            to_return["success"] = False
+            to_return["msg"] = "team not found"
+            return json.dumps(to_return),404
+        
+        cursor.execute("DELETE FROM vm WHERE vm_name = %s",(vm_name,))
+        mysql.database.commit()
+        return json.dumps({"success": True})
+
+    except Exception as e:
+        return json.dumps({"result": "failure", "reason": str(e)})
+    
+    return json.dumps({"success": True})
+
+
+@app.route("/vm/delete_all", methods=["DELETE"])
+@requires_auth
+def vm_delete_all():
+    to_return = {}
+
+    try :
+        cursor = mysql.cursor()
+
+        cursor.execute("DELETE FROM vm")
+        cursor.execute("DELETE FROM team_vm_key")
+        mysql.database.commit()
+        return json.dumps({"success": True})
+
+    except Exception as e:
+        return json.dumps({"result": "failure", "reason": str(e)})
+    
+    return json.dumps({"success": True})
 
 
 @app.route("/getlatest/infrastructure/logs", methods=["GET"])
@@ -189,7 +236,7 @@ def get_latest_infrastructure_logs():
         )
         result = cursor.fetchone()
         result["content"] = result["content"].decode("latin-1")
-        return json.dumps({"result": "success", "data": result}, default=str)
+        return json.dumps({"result": "success", "data": result},default=str)
     except Exception as e:
         print(e)
         return json.dumps({"result": "failure", "reason": str(e)})
@@ -200,10 +247,16 @@ def get_latest_infrastructure_logs():
 def get_infrastructure_log_by_id(id):
     try:
         cursor = mysql.cursor()
-        cursor.execute("""SELECT *  from infrastructure_logs WHERE id = %s """, (id,))
+        cursor.execute(
+            """SELECT *  from infrastructure_logs WHERE id = %s """,
+            (id,)
+        )
         result = cursor.fetchone()
+        if not result:
+            return json.dumps({"result": "success", "data": []},default=str)
+
         result["content"] = result["content"].decode("latin-1")
-        return json.dumps({"result": "success", "data": result}, default=str)
+        return json.dumps({"result": "success", "data": result},default=str)
     except Exception as e:
         print(e)
         return json.dumps({"result": "failure", "reason": str(e)})

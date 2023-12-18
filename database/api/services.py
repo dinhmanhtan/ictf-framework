@@ -79,7 +79,18 @@ def services_get(team_id=None):
         response["services"][service_id] = curr_row
 
     return json.dumps(response)
+@app.route("/services/get_all")
+@requires_auth
+def get_all_services():
+    to_return = {}
+    cursor = mysql.cursor()
+    cursor.execute("""SELECT id as service_id, name as service_name,
+                             port, flag_id_description, description,
+                             current_state as state, authors as authors
+                      FROM services""")
+    to_return["services"] = cursor.fetchall()
 
+    return json.dumps(to_return)
 
 @app.route("/services/uploadid/<int:upload_id>")
 @requires_auth

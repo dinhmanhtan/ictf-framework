@@ -7,7 +7,8 @@ ndg-httpsclient
 pyasn1
 setuptools-rust
 wheel
-Flask
+Flask==2.3.3
+Flask-Cors
 uWSGI
 PyYAML
 boto3

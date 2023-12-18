@@ -19,7 +19,6 @@ from lib.redis_ratelimit import ratelimit
 from lib.captcha import generate_captcha, set_captcha, get_captcha
 from lib.mailer import send_password_msg, send_verify_msg, send_reset_msg, send_ticket
 from config import config as conf
-import json
 import docker
 
 app = Flask(__name__)
@@ -29,7 +28,7 @@ app.config.update(conf)
 cache = Cache(config={'CACHE_TYPE': 'RedisCache'})
 cache.init_app(app)
 
-docker_client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+# docker_client = docker.DockerClient(base_url='unix://var/run/docker.sock')
 
 @cache.cached(30, key_prefix='game_state')
 def is_game_running():
@@ -408,7 +407,7 @@ def verify_captcha():
             #md = acct_args['metadata']
             #try:
             #    resp = requests.post(app.config['DB_API_URL_BASE'] + "/team/metadata/add/" + str(team_id),
-            #                         data={'label_data_json':json.dumps(md)},
+            #                         data={'label_data_json':jsonify(md)},
             #                         params={'secret': app.config['DB_API_SECRET']})
             #    if resp.status_code != 200:
             #        return jsonify({'message': "A weird error occurred on metadata submission.  Please contact the admins!"}),500
@@ -565,54 +564,52 @@ class Services(Resource):
         for service in enabled_svcs:
             service.pop('container_name')
             service.pop('can_restart')
-            service.pop('service_id')
-            service.pop('team_id')
         return jsonify({'services': enabled_svcs})
 
-class ServiceRestart(Resource):
+# class ServiceRestart(Resource):
 
-    @auth.login_required
-    @cache.cached(120)
-    @check_game_started
-    def get(self):
+#     @auth.login_required
+#     @cache.cached(120)
+#     @check_game_started
+#     def get(self):
 
-        enabled_svcs = get_enabled_services()
-        restart_services = []
-        services = enabled_svcs
-        for service in services:
-            if service["can_restart"] and service["container_name"]:
-                restart_services.append({"service_name" : service["service_name"], "port": service["port"]})
+#         enabled_svcs = get_enabled_services()
+#         restart_services = []
+#         services = enabled_svcs
+#         for service in services:
+#             if service["can_restart"] and service["container_name"]:
+#                 restart_services.append({"service_name" : service["service_name"], "port": service["port"]})
 
-        return jsonify({'services': restart_services})
+#         return jsonify({'services': restart_services})
 
-    @auth.login_required
-    @cache.cached(60)
-    @check_game_started
-    def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('service_name', location='json',type=str, required=True, help='The container_name must not be empty')
-        args = parser.parse_args()
-        service_name = args.get("service_name")
-        enabled_svcs = get_enabled_services()
+#     @auth.login_required
+#     @cache.cached(60)
+#     @check_game_started
+#     def post(self):
+#         parser = reqparse.RequestParser()
+#         parser.add_argument('service_name', location='json',type=str, required=True, help='The container_name must not be empty')
+#         args = parser.parse_args()
+#         service_name = args.get("service_name")
+#         enabled_svcs = get_enabled_services()
 
-        if not service_name in json.dumps(enabled_svcs):
-            return jsonify({'message': "Unknown service"})
+#         if not service_name in jsonify(enabled_svcs):
+#             return jsonify({'message': "Unknown service"})
 
-        team_id = g.user
-        services = enabled_svcs
-        for service in services:
-            if service["service_name"] == service_name:
-                if not service["can_restart"] or not service["container_name"]:
-                    return jsonify({"message" : "This service can't be restarted by server"})
+#         team_id = g.user
+#         services = enabled_svcs
+#         for service in services:
+#             if service["service_name"] == service_name:
+#                 if not service["can_restart"] or not service["container_name"]:
+#                     return jsonify({"message" : "This service can't be restarted by server"})
 
-                try:
-                    docker_client.containers.get(f"{service['container_name']}_{team_id}-1").restart()
-                    return jsonify({"message" : "restarted successly"})
-                except Exception as e:
-                    print(e)
-                    return jsonify({"message" : "Something was wrong with the server"})
+#                 try:
+#                     docker_client.containers.get(f"{service['container_name']}_{team_id}-1").restart()
+#                     return jsonify({"message" : "restarted successly"})
+#                 except Exception as e:
+#                     print(e)
+#                     return jsonify({"message" : "Something was wrong with the server"})
 
-        return jsonify({'message': 'Unknown service'})
+#         return jsonify({'message': 'Unknown service'})
 
 class Targets(Resource):
     @auth.login_required
@@ -624,9 +621,9 @@ class Targets(Resource):
         svcs = get_enabled_services()
         port = 0
         try:
-            port = filter(lambda x: x['service_id'] == service_id, svcs)[0]['port']
+            port = list(filter(lambda x: str(x['service_id']) == str(service_id), svcs))[0]['port']
         except:
-            return jsonify({'message': 'Unknown service'}), 404
+            return {'message': 'Unknown service'}, 404
         targets = []
         for team in teams:
             if str(team['id']) == str(g.user):
@@ -635,12 +632,12 @@ class Targets(Resource):
             target['team_name'] = team['name']
             target['hostname'] = "team%d" % team['id']
             target['port'] = port
-            team_flag_ids = flag_ids[str(unicode(team['id']))]
-            if not team_flag_ids.has_key(str(service_id)):
+            team_flag_ids = flag_ids[str(team['id'])]
+            if str(service_id) not in team_flag_ids :
                 continue
             target['flag_id'] = team_flag_ids[str(service_id)]
             targets.append(target)
-        return jsonify({'targets':targets})
+        return {'targets':targets}
 
     def _get_teams(self):
         """
@@ -817,7 +814,7 @@ api.add_resource(Token, '/api/login')
 api.add_resource(Team, '/api/team')
 api.add_resource(Reset, '/api/reset')
 api.add_resource(Service, '/api/service')
-api.add_resource(ServiceRestart, '/api/restart_service')
+# api.add_resource(ServiceRestart, '/api/restart_service')
 api.add_resource(Metadata, '/api/metadata')
 api.add_resource(VPN, "/api/vpnconfig")
 api.add_resource(Vote, "/api/vote")

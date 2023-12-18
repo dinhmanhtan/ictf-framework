@@ -34,20 +34,20 @@
         executable: /bin/bash
         creates: "/home/deploy/.nvm/versions/{{ NODE_VERSION }}"
     
-    - name: frontend - install npm packages
-      shell: sudo -u deploy bash -c "source /home/deploy/.nvm/nvm.sh && nvm use {{ NODE_VERSION }} && npm install || true"
-      args:
-        chdir: "{{ SCOREBOARD_DEPLOY_PATH }}/frontend"
-      environment:
-        HOME: /home/deploy
-      tags: [skip_ansible_lint]
+    # - name: frontend - install npm packages
+    #   shell: sudo -u deploy bash -c "source /home/deploy/.nvm/nvm.sh && nvm use {{ NODE_VERSION }}  && npm install  || true"
+    #   args:
+    #     chdir: "{{ SCOREBOARD_DEPLOY_PATH }}/frontend"
+    #   environment:
+    #     HOME: /home/deploy
+    #   tags: [skip_ansible_lint]
     
-    - name: frontend - compile CSS and JS assets
-      shell: sudo -u deploy bash -c "source /home/deploy/.nvm/nvm.sh && nvm use {{ NODE_VERSION }} && npm run build"
-      become: true
-      args:
-        chdir: "{{ SCOREBOARD_DEPLOY_PATH }}/frontend"
-      tags: [skip_ansible_lint]
+    # - name: frontend - compile CSS and JS assets
+    #   shell: sudo -u deploy bash -c "source /home/deploy/.nvm/nvm.sh && nvm use {{ NODE_VERSION }} && npm run build"
+    #   become: true
+    #   args:
+    #     chdir: "{{ SCOREBOARD_DEPLOY_PATH }}/frontend"
+    #   tags: [skip_ansible_lint]
 
     - name: frontend - set owner to deploy for _static/
       file:
@@ -129,8 +129,8 @@
         regexp="(THESECRETPASSPHRASEGOESHERE)"
         replace="{{ ICTF_API_SECRET }}"
 
-#    - name: logstash - config
-#      copy:
-#        src=./files/logstash.conf
-#        dest=/etc/logstash/conf.d/syslog.conf
-#        owner=root group=root mode="u=rw,g=r,o=r"
+  #  - name: logstash - config
+  #    copy:
+  #      src=./files/logstash.conf
+  #      dest=/etc/logstash/conf.d/syslog.conf
+  #      owner=root group=root mode="u=rw,g=r,o=r"

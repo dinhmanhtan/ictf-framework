@@ -12,7 +12,8 @@ COPY ./ro/xinetd.conf /etc/xinetd.d/simplecalc
 RUN chmod 644 /etc/xinetd.d/simplecalc
 
 WORKDIR /home/chall/service
- 
+
+# Locally we have to run as root to test until we have a proper infrastructure 
 USER chall
 
 CMD ["/usr/sbin/xinetd", "-dontfork"]

@@ -11,4 +11,4 @@ ulimit -n 20000
 
 python3 poller.py config.json 2>> poller.stderr.logs &
 
-gunicorn --log-file /var/log/gunicorn/glog.log -k gevent --worker-connections 10000 -w 2 --bind unix:/opt/ictf/scoreboard/gunicorn.sock app:app
+gunicorn --log-file /var/log/gunicorn/glog.log -k gevent --worker-connections 4096 -w 2 --bind unix:/opt/ictf/scoreboard/gunicorn.sock app:app

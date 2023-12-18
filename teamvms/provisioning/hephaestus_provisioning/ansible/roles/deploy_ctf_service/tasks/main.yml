@@ -57,14 +57,44 @@
       owner: "ctf"
       group: "chall"
       mode: 0755
-  
-  # - name: set Dockerfile permissions & owner
-  #   file:
-  #     path: "{{ GUEST_SERVICES_PATH }}/{{ SERVICE_NAME }}/Dockerfile"
-  #     state: file
-  #     owner: "ctf"
-  #     group: "chall"
-  #     mode: 0750
+
+
+  - name: Check if the Dockerfile file exists
+    ansible.builtin.stat:
+      path: "{{ GUEST_SERVICES_PATH }}/{{ SERVICE_NAME }}/Dockerfile"
+    register: dockerfile_stat
+    ignore_errors: yes
+
+  - name: set Dockerfile permissions & owner
+    file:
+      path: "{{ GUEST_SERVICES_PATH }}/{{ SERVICE_NAME }}/Dockerfile"
+      state: file
+      owner: "ctf"
+      group: "chall"
+      mode: 0750
+    when: dockerfile_stat.stat.exists
+
+  - name: Check if the docker compose file exists
+    ansible.builtin.stat:
+      path: "{{ GUEST_SERVICES_PATH }}/{{ SERVICE_NAME }}/docker-compose.yml"
+    register: docker_compose_stat
+    ignore_errors: yes
+
+  - name: set docker-compose file permissions & owner
+    file:
+      path: "{{ GUEST_SERVICES_PATH }}/{{ SERVICE_NAME }}/docker-compose.yml"
+      state: file
+      owner: "ctf"
+      group: "chall"
+      mode: 0750
+    when: docker_compose_stat.stat.exists    
+
+
+  - name: Check if ro folder exists
+    ansible.builtin.stat:
+      path: "{{ GUEST_SERVICES_PATH }}/{{ SERVICE_NAME }}/ro"
+    register: ro_stat
+    ignore_errors: yes
 
   - name: set ro folder permissions & owner
     file:
@@ -74,7 +104,13 @@
       state: directory
       mode: 0750
       recurse: yes
+    when: ro_stat.stat.exists 
   
+  - name: Check if ro folder exists
+    ansible.builtin.stat:
+      path: "{{ GUEST_SERVICES_PATH }}/{{ SERVICE_NAME }}/rw"
+    register: rw_stat
+    ignore_errors: yes
   - name: set rw folder permissions & owner
     file:
       path: "{{ GUEST_SERVICES_PATH }}/{{ SERVICE_NAME }}/rw"
@@ -83,7 +119,14 @@
       state: directory
       mode: 0770
       recurse: yes
+    when: rw_stat.stat.exists 
   
+
+  - name: Check if append folder exists
+    ansible.builtin.stat:
+      path: "{{ GUEST_SERVICES_PATH }}/{{ SERVICE_NAME }}/append"
+    register: append_stat
+    ignore_errors: yes
   - name: set append folder permissions & owner
     file:
       path: "{{ GUEST_SERVICES_PATH }}/{{ SERVICE_NAME }}/append"
@@ -92,3 +135,4 @@
       state: directory
       mode: 01764
       recurse: yes
+    when: append_stat.stat.exists 

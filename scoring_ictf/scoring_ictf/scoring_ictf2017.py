@@ -16,6 +16,7 @@ def extract_interesting_data(all_teams, all_services, service_status_report, att
 
     return up_teams, exploited_by
 
+
 def get_per_service_team_points(all_teams, all_services, service_status_report, attack_report):
     up_teams, exploited_by = extract_interesting_data(all_teams, all_services, service_status_report, attack_report)
     # print("exploited_by: {}".format(exploited_by))

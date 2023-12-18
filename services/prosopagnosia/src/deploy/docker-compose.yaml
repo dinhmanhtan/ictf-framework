@@ -2,7 +2,7 @@ version: "2.2"
 
 services:
   gateway:
-#    restart: always
+    restart: always
     build:
       context: .
       dockerfile: ./docker/gateway/Dockerfile
@@ -21,7 +21,7 @@ services:
   postgres:
     image: postgres:13.2-alpine
     container_name: prosopagnosia_postres
-#    restart: always
+    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -42,7 +42,7 @@ services:
     build: ./docker/back
     container_name: prosopagnosia_backend
     image: prosopagnosia_backend
-#    restart: always
+    restart: always
     volumes:
       - back_data:/var/prosopagnosia
     depends_on:

@@ -44,22 +44,14 @@ def setflag(ip, port, flag):
         response["payload"] = f"ERROR: Fail to login"
         return response
 
-    for _ in range(random.randint(0, 1)):
-        title = (
-            generate_random_string(random.randint(0, 7))
-            + " "
-            + generate_random_string(random.randint(0, 6))
-        )
-        description = (
-            generate_random_string(random.randint(2, 9))
-            + " "
-            + generate_random_string(random.randint(3, 8))
-        )
-        metadata = generate_random_string(random.randint(5, 16))
+    for _ in range(random.randint(0,1)):
+        title = generate_random_string(random.randint(0,7)) + " "+ generate_random_string(random.randint(0,6))
+        description = (generate_random_string(random.randint(2, 9)) + " " + generate_random_string(random.randint(3, 8)))
+        metadata = generate_random_string(random.randint(5,16))
         resp = requests.post(
             f"{api_url}/museum/exhibits",
             headers={"token": token},
-            json={"title": title, "description": description, "metadata": metadata},
+            json={"title" : title,"description":description,"metadata":metadata}
         )
 
     # also can extract all someone else exhibits
@@ -82,32 +74,27 @@ def setflag(ip, port, flag):
             json={"title": title, "description": description, "metadata": flag},
         )
         if resp.status_code != 200:
-            errors.append(f"Status_code: {resp.status_code} Error: {resp.text}")
+            errors.append(f"Status_code: {resp.status_code} Error: {resp.text}") 
         else:
             exihibit_id = resp.json().get("id")
             museum_id = jwt.decode(token, options={"verify_signature": False}).get("id")
             flag_id = exihibit_id + museum_id
-            response["payload"] = {"flag_id": flag_id, "secret_token": password}
+            response["payload"] = {
+                "flag_id": flag_id, 
+                "secret_token": password
+            }
             break
 
-    for _ in range(random.randint(0, 1)):
-        title = (
-            generate_random_string(random.randint(0, 7))
-            + " "
-            + generate_random_string(random.randint(0, 6))
-        )
-        description = (
-            generate_random_string(random.randint(2, 9))
-            + " "
-            + generate_random_string(random.randint(3, 8))
-        )
-        metadata = generate_random_string(random.randint(5, 16))
+    for _ in range(random.randint(0,1)):
+        title = generate_random_string(random.randint(0,7)) + " "+ generate_random_string(random.randint(0,6))
+        description = (generate_random_string(random.randint(2, 9)) + " " + generate_random_string(random.randint(3, 8)))
+        metadata = generate_random_string(random.randint(5,16))
         resp = requests.post(
             f"{api_url}/museum/exhibits",
             headers={"token": token},
-            json={"title": title, "description": description, "metadata": metadata},
+            json={"title" : title,"description":description,"metadata":metadata}
         )
-
+    
     if response["payload"] == {}:
         response["error"] = True
         response["paload"] = list(set(errors))

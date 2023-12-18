@@ -15,7 +15,7 @@ export default class Teams extends Component {
 
   tableHeaders() {
     return [
-      {id: 'logo', label: '', className: 'width--64-on-desk'},
+      {id: 'logo', label: '', className: 'width--128-on-desk'},
       {id: 'name', label: 'Name', className: 'truncate'},
       {id: 'academic_team', label: 'Academic', className: 'width--128-on-desk'},
       {id: 'country', label: 'Country', className: 'width--128-on-desk'},
@@ -40,7 +40,7 @@ export default class Teams extends Component {
       <div>
         <h3 className="title">Teams</h3>
 
-        <div className="space--bottom-1">{this.props.teams.length} teams</div>
+        {/* <div className="space--bottom-1">{this.props.teams.length} teams</div> */}
 
         <Table headers={ this.tableHeaders() }
                rows={ this.tableRows() }

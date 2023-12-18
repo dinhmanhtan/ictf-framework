@@ -65,14 +65,10 @@ class ScriptThread(threading.Thread):
         self.max_output_send_bytes = settings.MAX_SCRIPT_OUTPUT_BYTES
 
         # Set logger
-        #self.log = logging.getLogger('scriptbot.script_exec')
-        #self.log.setLevel(settings.LOG_LEVEL)
+        self.log = logging.getLogger('scriptbot.script_exec')
+        self.log.setLevel(settings.LOG_LEVEL)
         #self.log.addHandler(logstash.TCPLogstashHandler(LOGSTASH_IP, LOGSTASH_PORT, version=1))
-        self.log = logging
-        self.log.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
-        #self.log.setLevel(settings.LOG_LEVEL)
         self.log.info('ScriptThread Init')
-
 
     def get_status(self):
         """ Used for printing information to the logs"""

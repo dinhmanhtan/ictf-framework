@@ -25,6 +25,7 @@ __version__ = "0.1.1"
 
 from flask import Flask
 from .flaskext.mysql import MySQL
+from flask_cors import CORS
 
 # Python 3 compatibility
 #
@@ -32,11 +33,11 @@ PY3 = sys.version_info[0] == 3
 
 # pylint:disable=invalid-name
 if PY3:
-    string_types = (str,)  # pragma: no flakes
-    text_type = str  # pragma: no flakes
+    string_types = str,         # pragma: no flakes
+    text_type = str             # pragma: no flakes
 else:
-    string_types = (basestring,)  # pragma: no flakes
-    text_type = unicode  # pragma: no flakes
+    string_types = basestring,  # pragma: no flakes
+    text_type = unicode         # pragma: no flakes
 # pylint:enable=invalid-name
 
 
@@ -45,15 +46,14 @@ else:
 # pylint:disable=invalid-name
 app = Flask(__name__)
 app.config.from_envvar("ICTF_DATABASE_SETTINGS")
+CORS(app, origins=['*'])
 
 mysql = MySQL(app)
 # pylint:enable=invalid-name
 
-
 @app.route("/ping")
 def ping():
     return "pong"
-
 
 # The following files contain subset of the routes
 # that are specific to a subset of the functionality
@@ -72,4 +72,4 @@ from . import ticket
 from . import vm
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80, debug=True)
+    app.run()

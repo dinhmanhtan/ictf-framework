@@ -11,4 +11,3 @@ services:
             - "9100:9100"
         environment:
             - LOGSTASH_ID=database
-        #    - ICTF_DATABASE_SETTINGS=/opt/ictf/settings/database-api.py

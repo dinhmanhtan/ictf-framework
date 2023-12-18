@@ -43,7 +43,7 @@ class DBApi:
 
         # Set up logging
         log = logging.getLogger('gamebot_dbapi')
-        log.addHandler(logstash.TCPLogstashHandler(LOGSTASH_IP, LOGSTASH_PORT, version=1))
+        #log.addHandler(logstash.TCPLogstashHandler(LOGSTASH_IP, LOGSTASH_PORT, version=1))
         log.setLevel(log_level)
         log_formatter = coloredlogs.ColoredFormatter(DBApi.LOG_FMT)
         log_handler = logging.StreamHandler()
@@ -543,16 +543,19 @@ class DBApi:
         lost_flags = state_flags['lost_flags']
 
         for team_id in team_ids:
-            if len(lost_flags[team_id]) == 0:
-                for service_id in service_ids:
+            for service_id in service_ids:
+                if team_id not in lost_flags or service_id not in lost_flags[team_id] :
                     score_teams[team_id][service_id]["defense_points"] = 50
-            else:
+
+        for team_id in team_ids:
+            if len(lost_flags[team_id]) > 0:
                 team = lost_flags[team_id]
                 for service_id,exploited_teams in team.items():
                     avg_point = math.floor(50 / len(exploited_teams))
                     for exploited_team in exploited_teams:
                         for team_id, flag_id in exploited_team.items():
                             score_teams[team_id][service_id]["attack_points"] += avg_point
+                        
         return score_teams,team_ids,service_ids
 
     def save_points_to_tick_score(self,tick_id):
@@ -567,6 +570,7 @@ class DBApi:
                 if service_state[team_id][service_id]["service_state"] == "up":
                     up.append(team_id)
                 else:
+                    score_teams[team_id][service_id]["defense_points"] = 0
                     down.append(team_id)
             state[service_id] = {"up" : up, "down" : down}
 
@@ -577,23 +581,27 @@ class DBApi:
                avg_sla_point = math.floor(50/len(up_down_teams["up"]))
                for team_id in up_down_teams["up"] :
                    score_teams[team_id][service_id]["sla"] += avg_sla_point
+        scores = []
+                   
 
-        attack_points = {}
-        defense_points = {}
-        sla_points   = {}
-        total_points = {}
+        # attack_points = {}
+        # defense_points = {}
+        # sla_points   = {}
+        # total_points = {}
 
-        for team_id in team_ids:
-            attack_points[str(team_id)] = 0
-            defense_points[str(team_id)] = 0
-            sla_points[str(team_id)] = 0
-            for service_id in service_ids:
-                attack_points[str(team_id)] += score_teams[team_id][service_id]["attack_points"]
-                defense_points[str(team_id)] += score_teams[team_id][service_id]["defense_points"]
-                sla_points[str(team_id)] += score_teams[team_id][service_id]["sla"]
-            total_points[str(team_id)] =  attack_points[str(team_id)] + defense_points[str(team_id)] + sla_points[str(team_id)]
+        # for team_id in team_ids:
+        #     attack_points[str(team_id)] = 0
+        #     defense_points[str(team_id)] = 0
+        #     sla_points[str(team_id)] = 0
+        #     for service_id in service_ids:
+        #         attack_points[str(team_id)] += score_teams[team_id][service_id]["attack_points"]
+        #         defense_points[str(team_id)] += score_teams[team_id][service_id]["defense_points"]
+        #         sla_points[str(team_id)] += score_teams[team_id][service_id]["sla"]
+        #     total_points[str(team_id)] =  attack_points[str(team_id)] + defense_points[str(team_id)] + sla_points[str(team_id)]
 
         target_url = self.__build_url(f"update/scores/tick/{tick_id}")
-        data = {"attack_points":json.dumps(attack_points),"defense_points":json.dumps(defense_points),"sla_points":json.dumps(sla_points),"total_points":json.dumps(total_points)}
+        # data = {"attack_points":json.dumps(attack_points),"defense_points":json.dumps(defense_points),"sla_points":json.dumps(sla_points),"total_points":json.dumps(total_points)}
+        data = {"tick_score" : json.dumps(score_teams)}
         update_response = DBApi._get_json_response(target_url, post_data=data)
+        
         print(update_response)

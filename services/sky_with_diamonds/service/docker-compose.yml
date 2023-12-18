@@ -1,0 +1,16 @@
+version: '3.2'
+services:
+  diamonds:
+    build: .
+    image: lucy_in_the_sky_with_diamonds
+    container_name: lucy_in_the_sky_with_diamonds
+    volumes:
+      - type: bind
+        source: ./ro
+        target: /home/chall/service/ro
+        read_only: true
+      - type: bind
+        source: ./rw
+        target: /home/chall/service/rw
+    ports:
+      - "20005:6666"

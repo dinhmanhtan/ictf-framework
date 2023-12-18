@@ -73,7 +73,7 @@ CMD_TCPDUMP += ['-C', MAX_LOG_SIZE]     # rotate every MAX_LOG_SIZE MB of data (
 CMD_TCPDUMP += ['-G', '600']            # rotate every 10 minutes
 CMD_TCPDUMP += ['-w', SERVICES_CAPTURE_FILE + "_%Y-%m-%d_%H-%M-%S_0"]
 CMD_TCPDUMP += ['-z', '/opt/ictf/router/pcap-mv.sh']
-CMD_TCPDUMP += 'tcp and not net 10.9.0.1 mask 255.255.0.255 and portrange 10000-10100'.split()
+CMD_TCPDUMP += 'tcp and not net 10.9.1.1 mask 255.255.255.0 and portrange 20000-20100'.split()
 def main():
 
     if not os.path.exists(BASE_CAPTURE_DIR):

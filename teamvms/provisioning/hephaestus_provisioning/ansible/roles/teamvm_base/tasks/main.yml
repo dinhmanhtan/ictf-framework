@@ -62,7 +62,7 @@
   command: usermod -aG chall ctf
 
 - name: generate .ssh directory
-  file:p
+  file:
     path: /home/ctf/.ssh
     state: directory
     owner: ctf

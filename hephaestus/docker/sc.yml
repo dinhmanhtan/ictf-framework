@@ -2,9 +2,9 @@ version: '3.4'
 
 services:
 
-    ictf_teaminterface:
-        image: ictf_teaminterface
-        hostname: teaminterface
+    ictf_database:
+        image: ictf_database
+        hostname: database
         build:
-            dockerfile: ./hephaestus/docker/1_teaminterface/Dockerfile
+            dockerfile: ./hephaestus/docker/1_database/Dockerfile
             context: ../../

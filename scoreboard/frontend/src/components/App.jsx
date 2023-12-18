@@ -21,7 +21,15 @@ const views = [
   { title: 'Teams',             path: '/teams',             component: Teams}
 ]
 
+
+
+
 const App = (props) => {
+
+
+  console.log("props",props)
+
+
   const [title, setTitle] = useState('');
   let location = useLocation();
   let {gamestate, loading, error} = useGameState();
@@ -43,9 +51,26 @@ const App = (props) => {
           <Route key='route-redirect' exact strict path='/'>
             <Redirect to='/scores' />
           </Route>
+          <Route key='route-redirect-scores' exact strict path='/scores'>
+            <Redirect to='/scores' />
+          </Route>
+       
           <Route key='route-redirect-teams' exact strict path='/teams'>
             <Redirect to='/teams' />
           </Route>
+
+   
+          <Route key='route-redirect-services' exact strict path='/services'>
+              <Redirect to='/services' />
+          </Route>
+
+          <Route key='route-redirect-service-states' exact strict path='/service-states'>
+              <Redirect to='/service-states' />
+          </Route>
+          <Route key='route-redirect-exploits' exact strict path='/exploits'>
+              <Redirect to='/exploits' />
+          </Route>
+
           {
             views.map((view) => <NavLink 
                                   key={"link-" + view.path}

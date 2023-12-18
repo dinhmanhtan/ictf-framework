@@ -1,18 +1,20 @@
-# FROM golang:1.20
+FROM golang:1.20-alpine3.17 as builder
+LABEL stage=builder
 
-# RUN useradd -u 31337 -ms /bin/bash ctf
-# RUN useradd -u 31338 -ms /bin/bash chall
+RUN apk add --no-cache gcc musl-dev # for sqlite3 build
 
-# RUN chmod 755 /home/chall
+WORKDIR /app
 
-# #RUN apk add --no-cache gcc musl-dev # for sqlite3 build
-# #RUN apt-get install gcc musl-dev -y
+COPY go.mod go.sum ./
+RUN go mod download
 
-# WORKDIR /home/chall/service/ro
-# RUN mkdir ./jwt_secret && touch ./jwt_secret/secret
-# RUN mkdir /database
+COPY ./ ./
+RUN CGO_ENABLED=1 go build -o app cmd/app/main.go
 
-# COPY ./ro/go.mod ./ro/go.sum ./
-# RUN go mod download
-# RUN go install github.com/codegangsta/gin@latest
-# #USER chall
+FROM alpine:3.14
+
+WORKDIR /app
+
+COPY --from=builder /app/app .
+RUN mkdir ./jwt_secret && touch ./jwt_secret/secret
+RUN mkdir /database

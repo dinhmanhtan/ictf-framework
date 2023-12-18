@@ -1,5 +1,5 @@
 service_name: hermicache
-description: Password-protected service, only you can see your results!
+description: hermicache
 flag_id_description: Flags are identified by the content inside the result. Flagid is the username. 
 authors:
     - rutsh

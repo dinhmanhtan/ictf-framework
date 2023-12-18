@@ -37,9 +37,33 @@
         group: root 
         mode: "u=rw,g=r,o=r"
 
+
+
+    - name: Install prerequisite packages
+      apt:
+        name:
+          - apt-transport-https
+          - openjdk-8-jre
+
     - name: install kibana using remote .deb
       apt:
         deb: https://artifacts.elastic.co/downloads/kibana/kibana-7.6.2-amd64.deb
+
+    # - name: Add Elastic GPG key
+    #   apt_key:
+    #     url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    #     state: present
+
+    # - name: Add Elastic APT repository
+    #   apt_repository:
+    #     repo: deb https://artifacts.elastic.co/packages/7.6.2/apt stable main
+    #     state: present
+
+    # - name: Install Kibana
+    #   apt:
+    #     name: kibana
+    #     state: present
+
 
     - name: kibana - config file
       copy:

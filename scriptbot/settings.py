@@ -15,7 +15,7 @@ LOGSTASH_PORT = 1717
 REGISTRY_USERNAME = os.environ['REGISTRY_USERNAME']
 REGISTRY_PASSWORD = os.environ['REGISTRY_PASSWORD']
 REGISTRY_ENDPOINT = os.environ['REGISTRY_ENDPOINT']
-IS_LOCAL_REGISTRY = int(os.environ['IS_LOCAL_REGISTRY']) == 1
+IS_LOCAL_REGISTRY = int(os.environ['IS_LOCAL_REGISTRY'])
 
 # RabbitMQ settings
 RABBIT_USERNAME = os.environ['RABBIT_USERNAME']
@@ -30,7 +30,7 @@ DATABASE_REQUEST_RETRY_INTERVAL = 1 # Sleep 1 second before each retry
 MAX_SCRIPT_OUTPUT_BYTES = 1000      # how much output to send to DB
 
 # Scheduler settings
-SCRIPT_TIMEOUT_SOFT = 60 # 1 minute, roughly 1/3 of the length of a tick
+SCRIPT_TIMEOUT_SOFT = 120 # 1 minute, roughly 1/3 of the length of a tick
 SCRIPT_TIMEOUT_HARD = SCRIPT_TIMEOUT_SOFT + 10 # give the script 10 seconds to die and traceback
 
 # Let's mark the scriptbot with an ID so we can tag it in logstash

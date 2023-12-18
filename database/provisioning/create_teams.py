@@ -23,7 +23,7 @@ def get_all_teams(db_api_base_url, db_secret):
         response = result.json()
     except Exception as ex:
         raise Exception("Invalid JSON returned from /teams/info endpoint: {}".format(result.content)) from ex
-    # print(response)
+    print(response)
     return response['teams']
 
 
@@ -59,7 +59,7 @@ def add_teams_info(db_api_base_url, db_secret, game_config):
 
     # get all the teams in the DB that are currently created
     current_teams = get_all_teams(db_api_base_url, db_secret)
-    print(len(game_config["teams"]))
+
     for team in game_config['teams']:
 
         # check to see if this team is already in the DB, if so let's skip
@@ -71,7 +71,8 @@ def add_teams_info(db_api_base_url, db_secret, game_config):
             if cur_team['email'] != team['email']:
                 print("Already a team in the DB with the requested id %s but with different email %s != %s" % (team['id'], team['email'], cur_team['email']))
                 continue
-                
+                print("Team %s already exists in the DB, but it looks like all the info is OK" % (team['id'],))
+            continue
 
         gm_token = ''.join(rnd.choice(string.ascii_letters + string.digits) for _ in range(16))
 

@@ -9,7 +9,7 @@ You should not edit this file. You should edit /ictf/settings.py instead.
 # General
 DEBUG = True
 LISTEN = "0.0.0.0"
-API_SECRET = "lol"
+API_SECRET = "baEwFwsT0KRtdwYMrZuxMybgU"
 
 # MySQL
 MYSQL_DATABASE_USER = "ictf"

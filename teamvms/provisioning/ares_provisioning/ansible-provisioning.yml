@@ -51,5 +51,8 @@
     #   become_user: ctf
 
     - name: launch containers
-      shell:  ./opt/ictf/services/start_docker.sh
+      shell: ./start_docker.sh
+      args:
+        chdir: /opt/ictf/services
+      become: yes
       become_user: ctf

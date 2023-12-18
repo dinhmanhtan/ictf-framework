@@ -31,7 +31,7 @@ class ScriptsFacade:
 
         # Set up logging
         log = logging.getLogger('gamebot_scripts')
-        log.addHandler(logstash.TCPLogstashHandler(LOGSTASH_IP, LOGSTASH_PORT, version=1))
+        #log.addHandler(logstash.TCPLogstashHandler(LOGSTASH_IP, LOGSTASH_PORT, version=1))
         log.setLevel(log_level)
         log_formatter = coloredlogs.ColoredFormatter(ScriptsFacade.LOG_FMT)
         log_handler = logging.StreamHandler()
@@ -226,7 +226,7 @@ class ScriptsFacade:
                 # Get all exploit scripts for this service, not submitted from current team
                 curr_service_exploit_script.extend(value[curr_service]["exploit"] for key, value in exploit_scripts.items()
                                                    if key != curr_team and (curr_service in value))
-                # Flatten the list
+                # Flatten the list50
                 curr_service_exploit_script = flatten_list(curr_service_exploit_script)
                 # if there are admin exploits for the current service, get them too.
                 if curr_service in admin_exploits:

@@ -1,5 +1,5 @@
 FROM ictf_base
-
+RUN apt update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y nginx uwsgi uwsgi-plugin-python3 mysql-server python3-pip python3-virtualenv python3-mysqldb python3-dev python3-setuptools python3-wheel cron daemon
 RUN pip install --upgrade pip
 

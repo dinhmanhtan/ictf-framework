@@ -1,0 +1,9 @@
+version: "3.7"
+services:
+    she_came_in_through_the_bathroom_window:
+        build: .
+        image: she_came_in_through_the_bathroom_window
+        container_name: she_came_in_through_the_bathroom_window
+        ports:
+            - "20002:6666"
+

@@ -1,6 +1,6 @@
 service_name: prosopagnosia
 type: crypto-web
 description: prosopagnosia
-flag_id_description: Flags are identified by the secret of the room . Flagid is name of the demo 
+flag_id_description: Flags are identified by the secret of the room . Flagid is id of the author 
 authors:
     - quizy

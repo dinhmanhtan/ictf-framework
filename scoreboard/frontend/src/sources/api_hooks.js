@@ -46,16 +46,18 @@ export function useTicksScores(n_ticks=1) {
   }
   let lastTick = ticks[ticks.length-1];
   if (!lastTick || lastTick.tick.tick_id !== gamestate.dynamic[0].tick.tick_id) {
+    const serviceDict = Object.entries(gamestate.static.services).map(([key, value]) => ({ [key]: value.service_name }));
     let lastScores = _.values(gamestate.dynamic[0].scores);
-    let attackMax = Math.max(_.chain(lastScores).pluck('attack_points').max().value(), 1);
-    let serviceMax = Math.max(_.chain(lastScores).pluck('service_points').max().value(), 1);
-    let slaMax = _.chain(lastScores).pluck('sla').max().value();
-    lastScores = lastScores.for(s => {
-      s.attack_score = s.attack_points / attackMax * 100;
-      s.service_score = s.service_points / serviceMax * 100;
-      s.sla_score = s.sla / (slaMax === 0 ? 1 : slaMax) * 100;
-      s.team_name = gamestate.static.teams[s.team_id] && gamestate.static.teams[s.team_id].name;
-      return s;
+    lastScores = lastScores.map(s => {
+      let data = {team_id: s.team_id}
+      for (const obj of serviceDict) {
+        for (const [service_id, service_name] of Object.entries(obj)) {
+              data[service_name] = s[service_id.toString()]
+        }
+      }
+
+      data.team_name = gamestate.static.teams[s.team_id] && gamestate.static.teams[s.team_id].name;
+      return data;
     });
     lastScoresSorted = sortScores(lastScores, 'total_points');
     setTicks(ticks.concat(gamestate.dynamic));

@@ -16,6 +16,11 @@ const Scores = (props) => {
   const chart_ref = useRef(null);
   const {ticks, lastScores, lastScoresSorted, loading, error} = useTicksScores();
   const {gamestate, state_loading, state_error} = useGameState();
+  // console.log("ticks",ticks)
+  // console.log("lastScores",lastScores)
+  // console.log("lastScoresSorted",lastScoresSorted)
+  // console.log("teams",gamestate.static.teams)
+  // console.log("gamestate",gamestate)
 
   let teamsNames = _.pluck(_.first(lastScoresSorted, 10), 'team_name');
   let teamsIds = _.pluck(_.first(lastScoresSorted, 10), 'team_id');
@@ -109,7 +114,7 @@ const Scores = (props) => {
     return lastScoresSorted.filter(score => {
       return Object.values(gamestate.static.teams).find(t => t.id === score.team_id);
     }).map((s, i) => {
-      let team = Object.values(gamestate.static.teams.find)(t => t.id === s.team_id);
+      let team = Object.values(gamestate.static.teams).find(t => t.id === s.team_id);
       let teamNameTag = <span><Flag country={ team.country } size="16"/> { team.name }</span>;
       return {
         team_rank: i + 1,
@@ -124,7 +129,7 @@ const Scores = (props) => {
   return (
     <div>
       <h3 className="title">Scoreboard</h3>
-      <div className="chart" ref={chart_ref}/>
+      {/* <div className="chart" ref={chart_ref}/> */}
       <nav className="chart-controls">
         {/* <a href="#" onClick={ this.handleChartToggle.bind(this, 'all') }>Show all</a>
             <span> - </span>

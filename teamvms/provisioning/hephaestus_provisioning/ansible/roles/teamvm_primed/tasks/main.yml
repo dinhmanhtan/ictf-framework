@@ -17,11 +17,10 @@
 
 ########################          Setup the MOTD now        ###############################
 # Messages for the user #TODO: fix for current version of iCTF, root, self-host, services as docker
-# - name: motd  
-#   become: yes
-#   template:
-#     src: motd.j2
-#     dest: /etc/motd
+- name: motd
+  template:
+    src: motd.j2
+    dest: /etc/motd
 
 
 # - name: setup ctf user
@@ -31,6 +30,14 @@
 #     create_home: yes
 #     shell: /bin/bash
 #     state: "present"
+
+- name: Add user to sudoers without password
+  lineinfile:
+    path: /etc/sudoers
+    insertafter: '^# Allow members of group sudo to execute any command'
+    line: 'ctf ALL=(ALL) NOPASSWD:ALL'
+  become: yes
+  become_user: root
 
 # - name: Copy the authorized key file from
 #   authorized_key:
@@ -79,7 +86,6 @@
 
 ########################    SETUP bindfs for append-only    ###############################
 # - name: setup bindfs for the append only dir
-#   become: yes
 #   lineinfile:
 #     path: /etc/fstab
 #     line: "{{ PRIMER_GUEST_SERVICES_PATH }}/{{item}}/append {{ PRIMER_GUEST_SERVICES_PATH }}/{{item}}/append fuse.bindfs force-user=root,perms=u=rwD:g=r:dg=rwx:o=D"
@@ -91,7 +97,7 @@
 #  shell: docker system prune --volumes -f
 #  when: PRIMER_LOCAL == false
 
-- name: copy start docker-compose file
+- name: copy start dock-compose file
   copy:
     src: start_docker.sh
     dest: /opt/ictf/services
@@ -99,3 +105,9 @@
     group: ctf
     mode: 0755
 
+- name: Change owner and group of the folder recursively
+  file:
+    path: /opt/ictf/services/
+    owner: ctf
+    group: chall
+    recurse: yes

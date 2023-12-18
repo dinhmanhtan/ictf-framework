@@ -8,7 +8,7 @@ fi
 
 cat ./teamhosts >> /etc/hosts
 
-service prometheus-node-exporter start
+#service prometheus-node-exporter start
 
 #/usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/syslog.conf  &
 

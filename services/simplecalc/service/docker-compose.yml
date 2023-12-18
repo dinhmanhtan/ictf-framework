@@ -1,0 +1,21 @@
+version: '3.2'
+services:
+
+      simplecalc:
+        image: simplecalc
+        container_name: simplecalc
+        build: .
+        volumes:
+        - type: bind
+          source: ./ro
+          target: /home/chall/service/ro
+          read_only: true
+        - type: bind
+          source: ./rw
+          target: /home/chall/service/rw
+        - type: bind
+          source: ./append
+          target: /home/chall/service/append
+        ports:
+        - "20003:6666"
+        restart: always

@@ -210,7 +210,7 @@ int main(int argc, char** argv)
     setbuf(stdin, NULL);
 
     char input[40];
-    chdir("../rw/");
+    chdir("/home/chall/service/rw/");
     while(1)
     {
         printmenu();

@@ -29,7 +29,27 @@ create table team_vm_key (id int not null auto_increment, primary key(id),
                     ctf_key varchar(2048),
                     root_key varchar(2048),
                     ip varchar(20),
-                    port int
+                    port int,
+                    instance_type varchar(20),
+                    volume_size int,
+                    private_ip varchar(20)
+                    );
+
+drop table if exists vm;
+create table vm (id int not null auto_increment, primary key(id),
+                    vm_name varchar(20) not null, unique key(vm_name),
+                    root_key varchar(2048),
+                    ip varchar(20),
+                    instance_type varchar(20),
+                    volume_size int,
+                    private_ip varchar(20),
+                    vm_state varchar(20)
+                    );
+
+drop table if exists infrastructure_logs;
+create table infrastructure_logs (id int not null auto_increment, primary key(id),
+                    content mediumblob,
+                    created_at timestamp not null default current_timestamp
                     );
 
 
@@ -280,13 +300,14 @@ create table uploads (id int not null auto_increment, primary key(id),
 drop table if exists tick_scores;
 create table tick_scores (tick_id int not null,
                              team_id int not null,
+                             service_id int not null,
                              sla_points float not null,
                              attack_points float not null,
                              defense_points float not null,
                              total_points float not null,
-                             primary key(tick_id, team_id),
+                             primary key(tick_id, team_id,service_id),
                              key(team_id),
-                             key(tick_id, team_id));
+                             key(tick_id, team_id, service_id));
 
 -- table for computing scoring
 drop table if exists partial_scores;
@@ -332,7 +353,7 @@ create table ticks_configuration (name varchar(128), primary key(name),
 insert into ticks_configuration (name, value) values
     ('NUMBER_OF_BENIGN_SCRIPTS', 2),
     ('NUMBER_OF_EXPLOIT_SCRIPTS', 0),
-    ('TICK_TIME_IN_SECONDS', 200),
+    ('TICK_TIME_IN_SECONDS', 220),
     ('NUMBER_OF_GETFLAGS', 1);
 
 drop table if exists tickets;
