@@ -5,28 +5,29 @@ from settings import GAME_CONFIG_PATH
 import json
 from botocore.exceptions import ClientError
 
-access_key = "AKIAXKN6XAVIBH6ODTOZ"
-secret_key = "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"
-aws_region = "ap-southeast-1"
-registry_url = "503448012112.dkr.ecr.ap-southeast-1.amazonaws.com"
+access_key = ""
+secret_key = ""
+aws_region = ""
+registry_url = ""
 ecr_client = boto3.client(
     "ecr",
     region_name=aws_region,
     aws_access_key_id=access_key,
     aws_secret_access_key=secret_key,
 )
-ictf_repository_ecr = [
-    "ictf_database",
-    "ictf_router",
-    "ictf_gamebot",
-    "ictf_scriptbot",
-    "ictf_dispatcher",
-    "ictf_teaminterface",
-    "ictf_logger",
-]
+ictf_repository_ecr = {
+    "ictf_database": True,
+    "ictf_router": True,
+    "ictf_gamebot": True,
+    "ictf_scriptbot": True,
+    "ictf_dispatcher": True,
+    "ictf_teaminterface": True,
+    "ictf_logger": False,
+    "ictf_scoreboard" : True
+}
 
 
-def get_ecr_images(ecr_client, repositoryName, queue):
+def get_ecr_images(ecr_client, repositoryName, images):
     paginator = ecr_client.get_paginator("list_images")
     image_tags = []
     try:
@@ -34,29 +35,34 @@ def get_ecr_images(ecr_client, repositoryName, queue):
             image_tags.extend(page["imageIds"])
             # print(f"Images in repository '{repositoryName}' ({repository_uri}):")
             for image_tag in image_tags:
-                if "imageTag" in image_tag:
-                    queue.put(f"{repositoryName}:{image_tag['imageTag']}")
+                if "imageTag" in image_tag and image_tag["imageTag"] == "latest":
+                    images.append(repositoryName)
+                    return
+
     except ClientError as e:
         if e.response["Error"]["Code"] == "RepositoryNotFoundException":
-            print(f"Repository not found {repositoryName}")
+            print(repositoryName)
+            return
 
 
 def list_ecr_images():
-    response = ecr_client.describe_repositories()
+    #response = ecr_client.describe_repositories()
 
     threads = []
-    image_queue = Queue()
-    # for repository in response["repositories"]:
-    #     repository_uri = repository["repositoryUri"]
-    #     repositoryName = repository["repositoryName"]
-    #     thread = threading.Thread(
-    #         target=get_ecr_images, args=(ecr_client, repositoryName, image_queue)
-    #     )
-    #     threads.append(thread)
+    ictf_repositories = []
+    scriptbot_repositories = []
+
     game_config = json.load(open(GAME_CONFIG_PATH, "r"))
+    services = game_config["services"]
     for repository in ictf_repository_ecr:
         thread = threading.Thread(
-            target=get_ecr_images, args=(ecr_client, repository, image_queue)
+            target=get_ecr_images, args=(ecr_client, repository, ictf_repositories)
+        )
+        threads.append(thread)
+
+    for service in services:
+        thread = threading.Thread(
+            target=get_ecr_images, args=(ecr_client, f"{service["name"]}_scripts", scriptbot_repositories)
         )
         threads.append(thread)
 
@@ -66,9 +72,26 @@ def list_ecr_images():
     for thread in threads:
         thread.join()
 
-    ecr_images = []
-    while not image_queue.empty():
-        image = image_queue.get()
-        ecr_images.append(image)
+    print(ictf_repositories,scriptbot_repositories )
+    result = {"infrastructure_images": [], "scriptbot_images": []}	
+    infrastructure_images = []
+    scriptbot_images = []
 
-    return ecr_images
+    for repository_name,required in ictf_repository_ecr.items():
+        if repository_name in ictf_repositories:
+            infrastructure_images.append({"name": repository_name, "status": "available", "required": required}) 
+        else:
+            infrastructure_images.append({"name": repository_name, "status": "unavailable", "required": required}) 
+
+    result["infrastructure_images"] = infrastructure_images
+
+    for service in services:
+        service_image = f"{service["name"]}_scripts"
+        if service_image in scriptbot_repositories:
+            scriptbot_images.append({"name": service_image, "status": "available", "required": True})
+        else:
+            scriptbot_images.append({"name": service_image, "status": "unavailable", "required": True})
+
+    result["scriptbot_images"] = scriptbot_images
+
+    return result
